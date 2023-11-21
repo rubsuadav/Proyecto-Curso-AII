@@ -18,6 +18,7 @@ import shutil
 import re
 import numpy
 import urllib.error
+import time
 
 # lineas para evitar error SSL
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
@@ -30,8 +31,20 @@ def permission_to_scrap(url):
     headers = {'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'es'}
     request = urllib.request.Request(
         "https://www.justwatch.com" + url, headers=headers)
-    f = urllib.request.urlopen(request)
-    return BeautifulSoup(f, 'lxml')
+
+    # Algunas veces da error 429 de más peticiones de las permitidas
+    # por lo que agregamos un tiempo de espera para evitarlo
+    tiempo_espera = 1
+    while True:
+        try:
+            f = urllib.request.urlopen(request)
+            return BeautifulSoup(f, 'lxml')
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                print(
+                    f"Error 429: Demasiadas solicitudes. Esperando {tiempo_espera} segundos.")
+                time.sleep(tiempo_espera)
+                tiempo_espera += 1
 
 
 def populate():
@@ -65,7 +78,7 @@ def populate():
 
     s3 = permission_to_scrap(enl)
 
-    # Cargar datos de las plataformas
+    # CARGAR DATOS DE LAS PLATAFORMAS #
     datos_plataformas = s3.find(
         "div", class_=re.compile("__items")).find_all("div")
 
@@ -89,7 +102,7 @@ def populate():
             dictplataformas[nombre_plataforma] = objeto_plataforma
             pl += 1
 
-        # Cargar datos de las peliculas
+        # CARGAR DATOS DE LAS PELICULAS #
         # nos quedamos con las plataformas que tienen peliculas --> 61 plataformas con peliculas
         if s4.find("div", {'listlayout': 'grid'}) is not None:
             datos2 = s4.find("div", {'listlayout': 'grid'}).find(
@@ -100,21 +113,35 @@ def populate():
             # con 6 salen 366 peliculas y con 7 salen 427 asi que nos quedamos con 7
             for d in datos2[:7]:
                 if d.a is not None:
-                    # Añadimos el enlace a la lista de enlaces de peliculas
-                    try:
-                        s5 = permission_to_scrap(d.a["href"])
+                    s5 = permission_to_scrap(d.a["href"])
+                    datos3 = s5.find("div", class_="jw-info-box")
 
-                        # Datos específicos de la pelicula
-                        if s5.find("div", class_="jw-info-box") is not None:
-                            titulo = s5.find("div", class_="jw-info-box").find(
-                                "div", class_="title-block").h1.text.strip()
-                            fecha = s5.find("div", class_="jw-info-box").find(
-                                "div", class_="title-block").span.text.strip()[1:-1]  # Quitamos los paréntesis
+                    if datos3 is not None:
+                        titulo = datos3.find(
+                            "div", class_="title-block").h1.text.strip()
+                        fecha = datos3.find(
+                            "div", class_="title-block").span.text.strip()[1:-1]  # Quitamos los paréntesis
+                        sinopsis = datos3.find(
+                            'div', class_='streaming-chart').find_next_sibling()
+                        if sinopsis is not None:
+                            sinopsis = sinopsis.find_all("p")
+                            for si in sinopsis:
+                                sinopsis = si.text.strip()
+                        else:
+                            sinopsis = "No hay sinopsis disponible"
 
-                            # CONTINUAR AQUI (PARA MAÑANA!!!) TERMINAR DE RELLENAR ATRBS Y COMPROBAR BOCETO DE FK
+                        # Obtenemos el género, el director y la duración
+                        datos4 = datos3.find(
+                            "div", class_="title-info").find_all("div", class_="detail-infos")
+                        for d4 in datos4:
+                            etiquetas_iguales = d4.find(
+                                "h3", class_="detail-infos__subheading")  # los 3 atribs tienen misma etiqueta
+                            if etiquetas_iguales.text.strip() == "Géneros":
+                                generos = etiquetas_iguales.find_next_sibling(
+                                    "div").text.strip()  # tambien equivalente d4.div.text.strip()
 
-                            # BOCETO DE ALMACENAMIENTO DE FK
-                            """objeto_pelicula = (
+                        # BOCETO DE ALMACENAMIENTO DE FK (COMPROBAR BOCETO DE FK)
+                        """objeto_pelicula = (
                                 (p, titulo, "sinopsis", "genero", "director",  2019, 120, dictplataformas[nombre_plataforma]))
                             dictpeliculas[p] = objeto_pelicula
                             p += 1
@@ -130,10 +157,6 @@ def populate():
                             else:
                                 plataformas_peliculas[nombre_plataforma] = [
                                     objeto_pelicula]"""
-
-                    except urllib.error.HTTPError as e:  # Algunas veces da error 429 de demasiadas peticiones
-                        if e.code == 429:  # Si es error 429 continuamos hasta que termine de procesar todas las peliculas
-                            continue
 
     # Almacenamos las plataformas en la BBDD
     Plataforma.objects.bulk_create(plataformas)
