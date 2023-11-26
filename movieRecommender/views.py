@@ -1,7 +1,7 @@
 from django.shortcuts import render
-from .population import populate
+from .population import populateDB
 
 
 def index(request):
-    populate()
+    populateDB()
     return render(request, 'index.html')
