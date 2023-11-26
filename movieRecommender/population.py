@@ -8,7 +8,7 @@ from whoosh.fields import *
 from bs4 import BeautifulSoup
 
 # Models imports
-from .models import Plataforma, Pelicula, Puntuacion
+from .models import Plataforma, Pelicula, Puntuacion, Generos, Director
 
 # Others imports
 import os
@@ -52,17 +52,10 @@ def populate():
     Plataforma.objects.all().delete()
     Pelicula.objects.all().delete()
     Puntuacion.objects.all().delete()
+    Generos.objects.all().delete()
+    Director.objects.all().delete()
 
-    plataformas = []  # Listado de plataformas que se utilizará para el bulk_create
-    peliculas = []  # Listado de peliculas
-    peliculas2 = []  # Listado de peliculas para el bulk_create
     puntuaciones = []  # Listado de puntuaciones para el bulk_create
-    # Diccionario {nombreplataforma:listapeliculas} (para rellenar la FK de pelicula)
-    plataformas_peliculas = {}
-    dictplataformas = {}  # Diccionario {nombreplataforma:objetoplataforma}
-    dictpeliculas = {}  # Diccionario {idpelicula:objetopelicula}
-    pl = 1  # Id para la plataforma
-    p = 1  # Id para la pelicula
     pun = 1  # Id para la puntuación
 
     s = permission_to_scrap("")
@@ -75,7 +68,6 @@ def populate():
     # JustWatch nos muestra tantos las peliculas como las series, por lo que nos quedamos solo con las peliculas
     enl = s2.find("div", class_="filter-bar-seo").find_all("div",
                                                            class_="filter-bar-content-type__item")[1].a["href"]
-
     s3 = permission_to_scrap(enl)
 
     # CARGAR DATOS DE LAS PLATAFORMAS #
@@ -86,21 +78,17 @@ def populate():
         nombre_plataforma = dp.img["title"]
         enlace_plataforma = dp.a["href"]
 
-        if nombre_plataforma not in dictplataformas.keys():
-            s4 = permission_to_scrap(enlace_plataforma)
+        s4 = permission_to_scrap(enlace_plataforma)
 
-            # Datos específicos de la plataforma
-            descripcion = s4.find(
-                "div", class_=re.compile("content-header")).find_all("div")[2].find_next("div").text.strip()
-            numero_producciones = s4.find(
-                "div", class_=re.compile("title-list")).find("div", class_="total-titles-seo").text.strip().replace("títulos", "")
+        # Datos específicos de la plataforma
+        descripcion = s4.find(
+            "div", class_=re.compile("content-header")).find_all("div")[2].find_next("div").text.strip()
+        numero_producciones = s4.find(
+            "div", class_=re.compile("title-list")).find("div", class_="total-titles-seo").text.strip().replace("títulos", "")
 
-            # Agregamos la plataforma a la lista de plataformas
-            objeto_plataforma = Plataforma(
-                id=pl, nombre=nombre_plataforma, descripcion=descripcion, numero_producciones=numero_producciones)
-            plataformas.append(objeto_plataforma)
-            dictplataformas[nombre_plataforma] = objeto_plataforma
-            pl += 1
+        # insertar datos en la base de datos
+        plataforma, created = Plataforma.objects.get_or_create(
+            nombre=nombre_plataforma, descripcion=descripcion, numero_producciones=numero_producciones)
 
         # CARGAR DATOS DE LAS PELICULAS #
         # nos quedamos con las plataformas que tienen peliculas --> 61 plataformas con peliculas
@@ -108,15 +96,16 @@ def populate():
             datos2 = s4.find("div", {'listlayout': 'grid'}).find(
                 "div", class_="title-list-grid").find_all("div", class_="title-list-grid__item")
             # como no hay paginacion y carga todas las peliculas de las 61 plataformas (mas de 1000 en total),
-            # limitamos la carga de aproximadamente 400 peliculas para que no tarde tanto,
-            # para saber con cuantas nos quedamos por plataformas dividimos 400 entre 61
-            # con 6 salen 366 peliculas y con 7 salen 427 asi que nos quedamos con 7
-            for d in datos2[:7]:
+            # limitamos la carga de aproximadamente 250 peliculas para que no tarde tanto,
+            # para saber con cuantas nos quedamos por plataformas dividimos 250 entre 61
+            # con 4 nos salen 244 peliculas y con 5 salen 305 asi que nos quedamos con 4
+            for d in datos2[:4]:
                 if d.a is not None:
                     s5 = permission_to_scrap(d.a["href"])
                     datos3 = s5.find("div", class_="jw-info-box")
 
                     if datos3 is not None:
+                        lista_generos = []
                         titulo = datos3.find(
                             "div", class_="title-block").h1.text.strip()
                         fecha = datos3.find(
@@ -130,45 +119,50 @@ def populate():
                         else:
                             sinopsis = "No hay sinopsis disponible"
 
-                        # Obtenemos el género, el director y la duración
+                        # Obtenemos los géneros, el director y la duración
                         datos4 = datos3.find(
                             "div", class_="title-info").find_all("div", class_="detail-infos")
                         for d4 in datos4:
                             etiquetas_iguales = d4.find(
                                 "h3", class_="detail-infos__subheading")  # los 3 atribs tienen misma etiqueta
+
                             if etiquetas_iguales.text.strip() == "Géneros":
-                                generos = etiquetas_iguales.find_next_sibling(
+                                generos_etiq = etiquetas_iguales.find_next_sibling(
+                                    "div")
+                                generos = "".join(
+                                    generos_etiq.stripped_strings)
+                                # Dividir la cadena de generos en una lista de generos
+                                generos = [genero.strip()
+                                           for genero in generos.split(",")]
+                                lista_generos += generos
+
+                            if etiquetas_iguales.text.strip() == "Duración":
+                                duracion_horas_minutos = etiquetas_iguales.find_next_sibling(
+                                    "div").text.strip()  # tambien equivalente d4.div.text.strip()
+                                if "h" in duracion_horas_minutos:
+                                    duracion = int(duracion_horas_minutos.split(
+                                        "h")[0]) * 60 + int(duracion_horas_minutos.split("h")[1].split("min")[0])
+                                else:
+                                    duracion = int(
+                                        duracion_horas_minutos.split("min")[0])
+
+                            if etiquetas_iguales.text.strip() == "Director":
+                                nombre_director = etiquetas_iguales.find_next_sibling(
                                     "div").text.strip()  # tambien equivalente d4.div.text.strip()
 
-                        # BOCETO DE ALMACENAMIENTO DE FK (COMPROBAR BOCETO DE FK)
-                        """objeto_pelicula = (
-                                (p, titulo, "sinopsis", "genero", "director",  2019, 120, dictplataformas[nombre_plataforma]))
-                            dictpeliculas[p] = objeto_pelicula
-                            p += 1
-                            peliculas.append(objeto_pelicula)
+                                # insertar datos en la base de datos
+                                director, created = Director.objects.get_or_create(
+                                    nombre=nombre_director)
 
-                            # Completamos el diccionario de las plataformas y sus peliculas.
-                            # Si el nombre de la plataforma ya es una clave, cojo su valor (lista) y le añado la nueva pelicula
-                            # En caso contrario, añado una nueva clave que sea el nombre de la plataforma, y le añado la pelicula (lista)
-                            if nombre_plataforma in plataformas_peliculas:
-                                listpelis = plataformas_peliculas[nombre_plataforma]
-                                listpelis.append(objeto_pelicula)
-                                plataformas_peliculas[nombre_plataforma] = listpelis
-                            else:
-                                plataformas_peliculas[nombre_plataforma] = [
-                                    objeto_pelicula]"""
+                    # insertar datos en la base de datos
+                    pelicula, created = Pelicula.objects.get_or_create(
+                        titulo=titulo, sinopsis=sinopsis, fecha_lanzamiento=fecha, duracion=duracion, director=director, plataforma=plataforma)
 
-    # Almacenamos las plataformas en la BBDD
-    Plataforma.objects.bulk_create(plataformas)
-    print("Plataformas almacenadas")
+                    # Crear o recuperar cada género individualmente
+                    for nombre_genero in lista_generos:
+                        genero, created = Generos.objects.get_or_create(
+                            nombre=nombre_genero)
+                        # añadir géneros a la pelicula
+                        pelicula.generos.add(genero)
 
-    """# Almacenamos las peliculas en la BBDD
-    for pp in plataformas_peliculas:
-        pelis = plataformas_peliculas[pp]
-        for pe in pelis:
-            objeto_pelicula = Pelicula(
-                id=pe[0], titulo=pe[1], sinopsis=pe[2], genero=pe[3], director=pe[4], fecha_lanzamiento=pe[5], duracion=pe[6], plataforma=pe[7])
-            peliculas2.append(objeto_pelicula)
-
-    Pelicula.objects.bulk_create(peliculas2)
-    print("Peliculas almacenadas")"""
+    return True
