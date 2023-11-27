@@ -1,4 +1,29 @@
-{% extends 'base.html' %} 
-{% block content %}
-<div class="text-blue-500 text-center text-3xl">Hello World</div>
+{% extends 'base.html' %} {% block content %}
+<div class="text-center">
+  <h4 class="text-2xl font-semibold mb-4 text-white">
+    Actualmente la base de datos tiene almacenada la siguiente información:
+  </h4>
+  <br />
+  <ul class="list-group space-y-4">
+    <li class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white">
+      <b>{{peliculas|length}} peliculas </b>
+    </li>
+    <br />
+    <li class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white">
+      <b>{{directores|length}} directores</b>
+    </li>
+    <br />
+    <li class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white">
+      <b>{{generos|length}} generos</b>
+    </li>
+    <br />
+    <li class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white">
+      <b>{{plataformas|length}} plataformas</b>
+    </li>
+    <br />
+    <li class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white">
+      <b>{{puntuaciones|length}} puntuaciones de plataformas a peliculas</b>
+    </li>
+  </ul>
+</div>
 {% endblock %}

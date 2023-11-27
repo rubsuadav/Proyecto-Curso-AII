@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os  # for tailwindcss
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -51,6 +52,7 @@ INTERNAL_IPS = [
 ]
 
 NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
+os.environ['NODE_OPTIONS'] = '--max-old-space-size=4096'
 
 MIDDLEWARE = [
     "django_browser_reload.middleware.BrowserReloadMiddleware",  # for tailwindcss
