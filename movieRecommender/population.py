@@ -109,6 +109,25 @@ def upload_duración(etiquetas_iguales):
     return duracion
 
 
+def upload_puntuaciones(puntuaciones, pun):
+    puntuaciones_posibles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    peliculas = Pelicula.objects.all()
+    for plataforma in Plataforma.objects.all():
+        # Una plataforma no puede puntuarse a sí misma
+        lista_peliculas = [
+            p for p in peliculas if p.plataforma.id != plataforma.id]
+        peliculas_elejidas = numpy.random.choice(
+            lista_peliculas, 10, replace=False)
+        peliculas_puntuadas = zip(
+            puntuaciones_posibles, peliculas_elejidas)
+        for pp in peliculas_puntuadas:
+            puntuaciones.append(Puntuacion(
+                id=pun, puntuacion=pp[0], id_plataforma=plataforma, id_pelicula=pp[1]))
+            pun += 1
+
+    return puntuaciones
+
+
 def populateDB():
     # borrar tablas
     Plataforma.objects.all().delete()
@@ -194,21 +213,11 @@ def populateDB():
     # Crear esquema de las peliculas
     print("Creando esquema de las peliculas...")
     create_shema_peliculas()
+    print("Esquema creado correctamente")
 
     # CARGAR DATOS DE LAS PUNTUACIONES #
-    puntuaciones_posibles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    peliculas = Pelicula.objects.all()
-    for plataforma in Plataforma.objects.all():
-        # Una plataforma no puede puntuarse a sí misma
-        lista_peliculas = [
-            p for p in peliculas if p.plataforma.id != plataforma.id]
-        peliculas_elejidas = numpy.random.choice(
-            lista_peliculas, 10, replace=False)
-        peliculas_puntuadas = zip(puntuaciones_posibles, peliculas_elejidas)
-        for pp in peliculas_puntuadas:
-            puntuaciones.append(Puntuacion(
-                id=pun, puntuacion=pp[0], id_plataforma=plataforma, id_pelicula=pp[1]))
-            pun += 1
+    print("Cargando puntuaciones...")
+    puntuaciones = upload_puntuaciones(puntuaciones, pun)
 
     # Insertar las puntuaciones en la base de datos
     Puntuacion.objects.bulk_create(puntuaciones)
@@ -218,8 +227,9 @@ def populateDB():
 
 
 def create_shema_peliculas():
-    shema = Schema(id=NUMERIC(stored=True), titulo=TEXT(
-        stored=True), sinopsis=TEXT(stored=True), fecha_lanzamiento=NUMERIC(stored=True), duracion=NUMERIC(stored=True), director=NUMERIC(stored=True), plataforma=NUMERIC(stored=True), generos=KEYWORD(stored=True, commas=True))
+    shema = Schema(id=ID(stored=True, unique=True), titulo=TEXT(stored=True, phrase=True), sinopsis=TEXT(stored=True),
+                   fecha_lanzamiento=NUMERIC(stored=True, numtype=int), duracion=NUMERIC(stored=True, numtype=int),
+                   director=NUMERIC(stored=True), plataforma=NUMERIC(stored=True), generos=KEYWORD(stored=True, commas=True))
 
     if os.path.exists("indice_peliculas"):
         shutil.rmtree("indice_peliculas")
@@ -231,6 +241,8 @@ def create_shema_peliculas():
 
     for pelicula in lista_peliculas:
         generos = ','.join([str(genero) for genero in pelicula.generos.all()])
-        writer.add_document(id=pelicula.id, titulo=pelicula.titulo, sinopsis=pelicula.sinopsis, fecha_lanzamiento=pelicula.fecha_lanzamiento,
-                            duracion=pelicula.duracion, director=pelicula.director.id, plataforma=pelicula.plataforma.id, generos=generos)
+        writer.add_document(id=str(pelicula.id), titulo=pelicula.titulo, sinopsis=pelicula.sinopsis,
+                            fecha_lanzamiento=pelicula.fecha_lanzamiento,
+                            duracion=pelicula.duracion, director=pelicula.director.id, plataforma=pelicula.plataforma.id,
+                            generos=generos)
     writer.commit()

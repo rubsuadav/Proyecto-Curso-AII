@@ -1,0 +1,27 @@
+{% extends 'base.html' %} {% block cabecera %}
+<h4 class="text-2xl font-semibold mb-4 text-white text-center">
+  Cargar el Sistema de Recomendación
+</h4>
+{% endblock %} {% block content %}
+<div class="text-center">
+  <h4>
+    Aviso: Este proceso elimina el sistema de recomendación actual y crea uno
+    nuevo
+  </h4>
+  <form id="formulario" method="post" action="">
+    {% csrf_token %}
+    <input
+      class="bg-blue-700"
+      type="submit"
+      name="Aceptar"
+      value="Aceptar"
+    />
+    <input
+      class="bg-green-600"
+      type="submit"
+      name="Cancelar"
+      value="Cancelar"
+    />
+  </form>
+</div>
+{% endblock %}
