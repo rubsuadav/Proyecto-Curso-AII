@@ -1,0 +1,33 @@
+{% extends 'base.html' %} {% block cabecera %}
+<h4 class="text-2xl font-semibold mb-4 text-white text-center">
+  Carga de la Base de Datos. Confirmación
+</h4>
+<br />
+<br />
+{% endblock %} {% block content %}
+<div class="text-center bg-black text-white p-5">
+  <h4 class="text-xl text-red-600">
+    Aviso: Este proceso es lento, borra la base de datos actual y requiere
+    conexión a internet
+  </h4>
+  <form method="post" action="" class="mt-5">
+    {% csrf_token %}
+    <button
+      class="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
+      name="cargar"
+      type="submit"
+      value="Si"
+    >
+      Aceptar
+    </button>
+    <button
+      class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded ml-3"
+      name="cargar"
+      type="submit"
+      value="No"
+    >
+      Cancelar
+    </button>
+  </form>
+</div>
+{% endblock %}

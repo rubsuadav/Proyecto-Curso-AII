@@ -1,0 +1,15 @@
+{% extends 'base.html' %} {% block cabecera %}
+<h4 class="text-4xl font-semibold mb-4 text-white text-center">
+  Cargado la Base de Datos
+</h4>
+<br />
+<br />
+{% endblock %} {% block content %}
+<div class="text-center">
+  <p class="text-red-700 text-2xl">
+    Se han almacenado {{peliculas|length}} peliculas, {{directores|length}}
+    directores, {{puntuaciones|length}} puntuaciones, {{generos|length}} generos
+    y {{plataformas|length}} plataformas.
+  </p>
+</div>
+{% endblock %}

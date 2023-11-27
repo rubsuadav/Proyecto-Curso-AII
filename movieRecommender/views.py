@@ -1,9 +1,18 @@
+# Django imports
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import user_passes_test
-import shelve
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 
+# Whooosh imports
+from whoosh.qparser import QueryParser, MultifieldParser, OrGroup
+from whoosh.index import open_dir, create_in, exists_in
+from whoosh.query import Every, And
+
+# Python imports
+import shelve
+
+# Local imports
 from .population import populateDB
 from .forms import RegisterForm, LoginForm
 from .recommendations import transformPrefs, calculateSimilarItems
@@ -94,3 +103,19 @@ def loadRS(request):
         else:
             return redirect("index")
     return render(request, 'confirmar_SR.html')
+
+
+# Cargar BBDD, sólo los usuarios autenticados pueden cargar la BBDD
+@user_passes_test(lambda u: u.is_authenticated, login_url='index')
+def cargar(request):
+    if request.method == 'POST':
+        if request.POST['cargar'] == 'Si':
+            populateDB()
+            return render(request, 'cargar_BD.html', {'peliculas': Pelicula.objects.all(),
+                                                      'directores': Director.objects.all(),
+                                                      'puntuaciones': Puntuacion.objects.all(),
+                                                      'generos': Generos.objects.all(),
+                                                      'plataformas': Plataforma.objects.all()})
+        else:
+            return redirect("index")
+    return render(request, 'confirmar_carga_BD.html')
