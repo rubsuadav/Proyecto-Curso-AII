@@ -6,7 +6,7 @@ from whoosh.fields import *
 from bs4 import BeautifulSoup
 
 # Models imports
-from .models import Plataforma, Pelicula, Puntuacion, Generos, Director
+from .models import Plataforma, Pelicula, Generos, Director
 
 # Others imports
 import os
@@ -14,7 +14,6 @@ import urllib.request
 import ssl
 import shutil
 import re
-import numpy
 import urllib.error
 import time
 
@@ -109,35 +108,12 @@ def upload_duración(etiquetas_iguales):
     return duracion
 
 
-def upload_puntuaciones(puntuaciones, pun):
-    puntuaciones_posibles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    peliculas = Pelicula.objects.all()
-    for plataforma in Plataforma.objects.all():
-        # Una plataforma no puede puntuarse a sí misma
-        lista_peliculas = [
-            p for p in peliculas if p.plataforma.id != plataforma.id]
-        peliculas_elejidas = numpy.random.choice(
-            lista_peliculas, 10, replace=False)
-        peliculas_puntuadas = zip(
-            puntuaciones_posibles, peliculas_elejidas)
-        for pp in peliculas_puntuadas:
-            puntuaciones.append(Puntuacion(
-                id=pun, puntuacion=pp[0], id_plataforma=plataforma, id_pelicula=pp[1]))
-            pun += 1
-
-    return puntuaciones
-
-
 def populateDB():
     # borrar tablas
     Plataforma.objects.all().delete()
     Pelicula.objects.all().delete()
-    Puntuacion.objects.all().delete()
     Generos.objects.all().delete()
     Director.objects.all().delete()
-
-    puntuaciones = []  # Listado de puntuaciones para el bulk_create
-    pun = 1  # Id para la puntuación
 
     s = permission_to_scrap("")
 
@@ -214,14 +190,6 @@ def populateDB():
     print("Creando esquema de las peliculas...")
     create_shema_peliculas()
     print("Esquema creado correctamente")
-
-    # CARGAR DATOS DE LAS PUNTUACIONES #
-    print("Cargando puntuaciones...")
-    puntuaciones = upload_puntuaciones(puntuaciones, pun)
-
-    # Insertar las puntuaciones en la base de datos
-    Puntuacion.objects.bulk_create(puntuaciones)
-    print("Puntuaciones cargadas correctamente")
 
     return True
 

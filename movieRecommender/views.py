@@ -16,11 +16,11 @@ import shelve
 from .population import populateDB
 from .forms import RegisterForm, LoginForm
 from .recommendations import transformPrefs, calculateSimilarItems
-from .models import Pelicula, Director, Puntuacion, Generos, Plataforma
+from .models import Pelicula, Director, Generos, Plataforma
 
 
 def index(request):
-    return render(request, 'index.html', {'peliculas': Pelicula.objects.all(), 'directores': Director.objects.all(), 'puntuaciones': Puntuacion.objects.all(), 'generos': Generos.objects.all(), 'plataformas': Plataforma.objects.all()})
+    return render(request, 'index.html', {'peliculas': Pelicula.objects.all(), 'directores': Director.objects.all(), 'generos': Generos.objects.all(), 'plataformas': Plataforma.objects.all()})
 
 
 @user_passes_test(lambda u: u.is_anonymous, login_url='index')
@@ -76,7 +76,7 @@ def logout_session(request):
 
 
 ## FUNCIÓN AUXILIAR PARA CARGAR EL SISTEMA DE RECOMENDACIÓN ##############################
-def loadDict():
+"""def loadDict():
     Prefs = {}
     shelf = shelve.open("dataRS.dat")
     ratings = Puntuacion.objects.all()
@@ -102,7 +102,7 @@ def loadRS(request):
             return render(request, 'cargar_SR.html', {'mensaje': mensaje})
         else:
             return redirect("index")
-    return render(request, 'confirmar_SR.html')
+    return render(request, 'confirmar_SR.html')"""
 
 
 # Cargar BBDD, sólo los usuarios autenticados pueden cargar la BBDD
@@ -113,7 +113,6 @@ def cargar(request):
             populateDB()
             return render(request, 'cargar_BD.html', {'peliculas': Pelicula.objects.all(),
                                                       'directores': Director.objects.all(),
-                                                      'puntuaciones': Puntuacion.objects.all(),
                                                       'generos': Generos.objects.all(),
                                                       'plataformas': Plataforma.objects.all()})
         else:
