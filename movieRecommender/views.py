@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import check_password
 
 # Whooosh imports
 from whoosh.qparser import QueryParser, MultifieldParser, OrGroup
@@ -32,16 +33,21 @@ def register(request):
             username = form.cleaned_data['username']
             email = form.cleaned_data['email']
 
-            if User.objects.filter(username=username).exists():
+            if User.objects.filter(username__iexact=username).exists():
                 form.add_error(
                     'username', 'El nombre de usuario ya existe')
                 return render(request, 'registro.html', {'form': form})
-            if User.objects.filter(email=email).exists():
+            if User.objects.filter(email__iexact=email).exists():
                 form.add_error(
                     'email', 'El email ya existe')
                 return render(request, 'registro.html', {'form': form})
+            if User.objects.filter(first_name__iexact=form.cleaned_data['first_name']).exists():
+                form.add_error(
+                    'first_name', 'El nombre ya existe')
+                return render(request, 'registro.html', {'form': form})
             user = User.objects.create_user(
                 username=username, email=email, password=form.cleaned_data['password'])
+
             user.first_name = form.cleaned_data['first_name']
             user.last_name = form.cleaned_data['last_name']
             user.save()
@@ -56,13 +62,17 @@ def user_login(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
+            password = form.cleaned_data["password"]
 
             if not User.objects.filter(username=username).exists():
                 form.add_error(
                     'username', 'El nombre de usuario no existe')
                 return render(request, 'login.html', {'form': form})
-            user = authenticate(username=username,
-                                password=form.cleaned_data["password"])
+            if not check_password(password, User.objects.get(username=username).password):
+                form.add_error(
+                    'password', 'La contraseña no es correcta')
+                return render(request, 'login.html', {'form': form})
+            user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
                 return redirect('index')
@@ -76,20 +86,8 @@ def logout_session(request):
 
 
 ## FUNCIÓN AUXILIAR PARA CARGAR EL SISTEMA DE RECOMENDACIÓN ##############################
-"""def loadDict():
-    Prefs = {}
-    shelf = shelve.open("dataRS.dat")
-    ratings = Puntuacion.objects.all()
-    for ra in ratings:
-        plataformna = int(ra.id_plataforma.id)
-        pelicula = int(ra.id_pelicula.id)
-        rating = float(ra.puntuacion)
-        Prefs.setdefault(plataformna, {})
-        Prefs[plataformna][pelicula] = rating
-    shelf['Prefs'] = Prefs
-    shelf['ItemsPrefs'] = transformPrefs(Prefs)
-    shelf['SimItems'] = calculateSimilarItems(Prefs, n=10)
-    shelf.close()
+def loadDict():
+    print("hola")
 
 
 # Cargar sistema de Recomendacion (RS), sólo los usuarios autenticados pueden cargar el RS
@@ -102,7 +100,7 @@ def loadRS(request):
             return render(request, 'cargar_SR.html', {'mensaje': mensaje})
         else:
             return redirect("index")
-    return render(request, 'confirmar_SR.html')"""
+    return render(request, 'confirmar_SR.html')
 
 
 # Cargar BBDD, sólo los usuarios autenticados pueden cargar la BBDD
