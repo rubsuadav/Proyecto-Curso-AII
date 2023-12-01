@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import os  # for tailwindcss
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,24 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tailwind',  # for tailwindcss
-    'theme',  # for tailwindcss
-    'django_browser_reload',  # for tailwindcss
     'movieRecommender',
 ]
 
-# for tailwindcss
-
-TAILWIND_APP_NAME = 'theme'
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
-
-NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
-os.environ['NODE_OPTIONS'] = '--max-old-space-size=4096'
-
 MIDDLEWARE = [
-    "django_browser_reload.middleware.BrowserReloadMiddleware",  # for tailwindcss
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
