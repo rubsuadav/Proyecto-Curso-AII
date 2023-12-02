@@ -15,7 +15,9 @@ urlpatterns = [
          views.detalles_pelicula, name='detalles_pelicula'),
 
     # BÚSQUEDAS DE PELÍCULAS POR ATRIBUTOS
-    path('buscar/', views.buscar, name='buscar'),
+    path('buscarpeliculasporgenero/', views.buscar_por_genero, name='busqueda1'),
+    path('buscarpeliculasportituloosinopsis/',
+         views.buscar_titulo_o_sinopsis, name='busqueda2'),
 
     # GESTION DE USUARIOS
     path('registro/', views.register, name='registro'),

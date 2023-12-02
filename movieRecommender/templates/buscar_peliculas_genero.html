@@ -1,0 +1,52 @@
+{% extends 'base.html' %} {% block cabecera %}
+<div class="text-center">
+  <h4 class="text-2xl font-semibold mb-4 text-white text-center">
+    Búsqueda de Películas por Género
+  </h4>
+  {% endblock %} {% block content %}
+  <div class="items-center justify-center text-center flex">
+    <form
+      method="post"
+      class="space-y-4 bg-gray-200 p-16 rounded shadow-2xl w-2/3 text-center"
+    >
+      {% csrf_token %} {{ form.as_div }}
+      <br />
+      <button
+        type="submit"
+        class="m-10 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      >
+        Realizar Búsqueda
+      </button>
+    </form>
+  </div>
+  <hr />
+  {% if peliculas %}
+  <div class="mt-4 ml-10 mr-10">
+    <h2 class="text-2xl font-bold mb-4 text-center text-white">
+      Total de Películas del género: {{peliculas|length}}
+    </h2>
+    <div class="grid grid-cols-6 gap-6">
+      {% for dato in peliculas %}
+      <div class="mt-8">
+        <img src="{{ dato.imagen }}" />
+        <div class="mt-2">
+          <p class="text-lg mt-2 text-white">
+            Título:
+            <a
+              class="text-lg mt-2 hover:text-blue-500 text-white"
+              href="{% url 'detalles_pelicula' dato.id %}"
+            >
+              <span
+                class="text-green-500 text-xl hover:text-green-200 underline"
+                >{{ dato.titulo }}
+              </span>
+            </a>
+          </p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}&nbsp;
+</div>
+{% endblock %}

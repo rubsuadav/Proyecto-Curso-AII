@@ -216,7 +216,8 @@ def create_shema_peliculas():
     lista_peliculas = Pelicula.objects.all()
 
     for pelicula in lista_peliculas:
-        generos = ','.join([str(genero) for genero in pelicula.generos.all()])
+        generos = ','.join([str(genero.nombre)
+                           for genero in pelicula.generos.all()])
         writer.add_document(id=str(pelicula.id), titulo=pelicula.titulo, sinopsis=pelicula.sinopsis,
                             fecha_lanzamiento=pelicula.fecha_lanzamiento,
                             duracion=pelicula.duracion, imagen=pelicula.imagen,

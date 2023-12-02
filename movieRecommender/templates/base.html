@@ -41,8 +41,12 @@
           <a class="mr-5 hover:text-gray-900" href="{% url 'agrupacion2' %}"
             >Películas agrupadas por géneros</a
           >
-          <a class="mr-5 hover:text-gray-900">Third Link</a>
-          <a class="mr-5 hover:text-gray-900">Fourth Link</a>
+          <a class="mr-5 hover:text-gray-900" href="{% url 'busqueda1' %}"
+            >Búsqueda por géneros</a
+          >
+          <a class="mr-5 hover:text-gray-900" href="{% url 'busqueda2' %}"
+            >Búsqueda por Título o Sinopsis</a
+          >
         </nav>
         <!--SÓLO USUARIOS LOGEADOS PUEDEN CARGAR LA BASE DE DATOS Y DESLOGEARSE-->
         {% if user.is_authenticated %}

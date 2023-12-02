@@ -8,16 +8,13 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Whooosh imports
 from whoosh.qparser import QueryParser, MultifieldParser, OrGroup
-from whoosh.index import open_dir, create_in, exists_in
-from whoosh.query import Every, And
-
-# Python imports
-import shelve
+from whoosh.index import open_dir
 
 # Local imports
 from .population import populateDB
 from .forms import RegisterForm, LoginForm
 from .models import Pelicula, Director, Generos, Plataforma
+from .forms import GenerosForm, TituloSinopsisForm
 
 
 def index(request):
@@ -70,8 +67,54 @@ def peliculas_agrupadas_por_genero(request):
 
 
 # BÚSQUEDAS #################################################
-def buscar(request):
-    pass
+def buscar_por_genero(request):
+    request.session['origen'] = 'busqueda_genero'
+    ix = open_dir("indice_peliculas")
+    form = GenerosForm()
+    if request.method == 'POST':
+        form = GenerosForm(request.POST)
+        if form.is_valid():
+            generos_input = form.cleaned_data['generos'].nombre
+            with ix.searcher() as searcher:
+                query = QueryParser("generos", ix.schema).parse(
+                    f'"{generos_input}"')
+                results = searcher.search(query, limit=None)
+                peliculas = borrar_peliculas_duplicadas(results)
+                return render(request, 'buscar_peliculas_genero.html', {'peliculas': peliculas, 'form': form})
+    else:
+        return render(request, 'buscar_peliculas_genero.html', {'form': form})
+
+
+def buscar_titulo_o_sinopsis(request):
+    request.session['origen'] = 'busqueda_titulo_o_sinopsis'
+    ix = open_dir("indice_peliculas")
+    form = TituloSinopsisForm()
+    if request.method == 'POST':
+        form = TituloSinopsisForm(request.POST)
+        if form.is_valid():
+            en = form.cleaned_data['titulo'] + form.cleaned_data['sinopsis']
+            with ix.searcher() as searcher:
+                query = MultifieldParser(
+                    ["titulo", "sinopsis"], ix.schema, group=OrGroup).parse(str(en))
+                results = searcher.search(query, limit=10)
+                peliculas = borrar_peliculas_duplicadas(results)
+                return render(request, 'buscar_peliculas_titulo_o_sinopsis.html', {'peliculas': peliculas, 'form': form})
+    else:
+        return render(request, 'buscar_peliculas_titulo_o_sinopsis.html', {'form': form})
+
+
+# MÉTODOS AUXILIARES #################################################
+def borrar_peliculas_duplicadas(results):
+    peliculas_set = set()
+    peliculas = []
+    for result in results:
+        if result['titulo'] not in peliculas_set:
+            # Añadimos la pelicula al conjunto de peliculas
+            peliculas_set.add(result['titulo'])
+            # Añadimos la pelicula a la lista de peliculas
+            peliculas.append(result)
+
+    return peliculas
 
 
 # DETALLES #################################################

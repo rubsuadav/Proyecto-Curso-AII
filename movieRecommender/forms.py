@@ -1,6 +1,13 @@
+# Django imports
 from django import forms
 from django.core.exceptions import ValidationError
+
+# Local imports
+from .models import Generos
+
+# Python imports
 import re
+import random
 
 
 def validate_email(value):
@@ -52,3 +59,15 @@ class LoginForm(forms.Form):
                                min_length=6, widget=forms.TextInput, required=True)
     password = forms.CharField(label='Contraseña', max_length=100, min_length=6,
                                widget=forms.PasswordInput, required=True)
+
+
+class GenerosForm(forms.Form):
+    generos = forms.ModelChoiceField(
+        queryset=Generos.objects.all(), label='Selecciona el género', initial=random.choice(Generos.objects.all()))
+
+
+class TituloSinopsisForm(forms.Form):
+    titulo = forms.CharField(label='Título', max_length=100, min_length=1,
+                             widget=forms.TextInput, required=False)
+    sinopsis = forms.CharField(label='Sinopsis', max_length=100, min_length=1,
+                               widget=forms.TextInput, required=False)
