@@ -67,13 +67,16 @@ def upload_data_peliculas(datos3):
         "div", class_="title-block").h1.text.strip()
     fecha = datos3.find(
         "div", class_="title-block").span.text.strip()[1:-1]  # Quitamos los paréntesis
-    sinopsis = datos3.find(
-        'div', class_='streaming-chart').find_next_sibling()
-    if sinopsis is not None:
-        sinopsis = sinopsis.find_all("p")
-        for si in sinopsis:
-            sinopsis = si.text.strip()
-    else:
+    try:
+        sinopsis = datos3.find(
+            'div', class_='streaming-chart').find_next_sibling()
+        if sinopsis is not None:
+            sinopsis = sinopsis.find_all("p")
+            for si in sinopsis:
+                sinopsis = si.text.strip()
+        else:
+            sinopsis = "No hay sinopsis disponible"
+    except:
         sinopsis = "No hay sinopsis disponible"
 
     imagen = datos3.find("div", class_="title-poster").img['data-src']
@@ -142,10 +145,10 @@ def populateDB():
             datos2 = s4.find("div", {'listlayout': 'grid'}).find(
                 "div", class_="title-list-grid").find_all("div", class_="title-list-grid__item")
             # como no hay paginacion y carga todas las peliculas de las 61 plataformas (mas de 1000 en total),
-            # limitamos la carga de aproximadamente 250 peliculas para que no tarde tanto,
-            # para saber con cuantas nos quedamos por plataformas dividimos 250 entre 61
-            # con 4 nos salen 244 peliculas y con 5 salen 305 asi que nos quedamos con 4
-            for d in datos2[:4]:
+            # limitamos la carga de aproximadamente 500 peliculas para que no tarde tanto,
+            # para saber con cuantas nos quedamos por plataformas dividimos 500 entre 61
+            # con 8 nos salen 488 peliculas y con 9 salen 549 asi que nos quedamos con 8
+            for d in datos2[:8]:
                 if d.a is not None:
                     s5 = permission_to_scrap(d.a["href"])
                     datos3 = s5.find("div", class_="jw-info-box")

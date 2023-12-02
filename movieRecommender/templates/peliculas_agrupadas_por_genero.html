@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+<div class="text-center">
+  {% block cabecera %}
+  <h4 class="text-2xl font-semibold mb-4 text-white text-center">
+    Películas agrupadas por genero
+  </h4>
+  {% endblock %} {% block content %}
+  <div class="container mx-auto px-4 pt-16">
+    <div class="grid grid-cols-4 gap-4">
+      {% for genero, peliculas in peliculas_genero %}
+      <div>
+        <h4 class="text-xl">
+          <p class="text-center">
+            <span class="text-white">{{ genero.nombre }}</span>
+          </p>
+          <p class="text-center">
+            <span class="text-red-500">({{ peliculas|length }} películas)</span>
+          </p>
+        </h4>
+        {% for pelicula in peliculas %}
+        <div class="mt-8">
+          <img src="{{ pelicula.imagen }}" />
+          <div class="mt-2">
+            <p class="text-lg mt-2 text-white">
+              Título:
+              <a
+                class="text-lg mt-2 hover:text-blue-500 text-white"
+                href="{% url 'detalles_pelicula' pelicula.id %}"
+              >
+                <span
+                  class="text-green-500 text-xl hover:text-green-200 underline"
+                  >{{ pelicula.titulo }}
+                </span>
+              </a>
+            </p>
+          </div>
+          <div class="mt-2">
+            <a class="text-lg mt-2 text-white">
+              <p>
+                Director:
+                <span class="text-blue-500 text-xl">
+                  {{ pelicula.director }}
+                </span>
+              </p>
+            </a>
+          </div>
+          &nbsp;
+          <p class="text-white text-lg">Géneros:</p>
+          {% for genero in pelicula.generos.all %}
+          <div class="flex items-center text-gray-400 text-sm mt-1 ml-16">
+            <p>
+              <span class="text-yellow-600 text-center text-xl">
+                {{ genero.nombre }}
+              </span>
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+        &nbsp; &nbsp; {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <!--Pagination-->
+    <div class="flex justify-center my-8">
+      <div class="flex rounded-md mt-8">
+        {% if peliculas_genero.has_previous %}
+        <a
+          href="?page=1"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-700 rounded-l-md"
+          >Primero
+        </a>
+        <a
+          href="?page={{ peliculas_genero.previous_page_number }}"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-700"
+          >Anterior
+        </a>
+        {% endif %}
+        <span class="px-4 py-2 text-sm font-medium text-white bg-blue-500">
+          {{ peliculas_genero.number }} de
+          {{peliculas_genero.paginator.num_pages }}
+        </span>
+        {% if peliculas_genero.has_next %}
+        <a
+          href="?page={{ peliculas_genero.next_page_number }}"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-700"
+          >Siguiente
+        </a>
+        <a
+          href="?page={{ peliculas_genero.paginator.num_pages }}"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-700 rounded-r-md"
+          >Último
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

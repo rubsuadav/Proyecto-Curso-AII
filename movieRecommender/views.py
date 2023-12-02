@@ -1,9 +1,10 @@
 # Django imports
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import check_password
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Whooosh imports
 from whoosh.qparser import QueryParser, MultifieldParser, OrGroup
@@ -16,7 +17,6 @@ import shelve
 # Local imports
 from .population import populateDB
 from .forms import RegisterForm, LoginForm
-from .recommendations import transformPrefs, calculateSimilarItems
 from .models import Pelicula, Director, Generos, Plataforma
 
 
@@ -24,6 +24,63 @@ def index(request):
     return render(request, 'index.html', {'peliculas': Pelicula.objects.all(), 'directores': Director.objects.all(), 'generos': Generos.objects.all(), 'plataformas': Plataforma.objects.all()})
 
 
+# AGRUPACIONES #################################################
+def peliculas_agrupadas_por_plataforma(request):
+    request.session['origen'] = 'plataforma'
+    page = request.GET.get('page', 1)
+    plataformas = Plataforma.objects.all()
+    peliculas_por_director = {plataforma: Pelicula.objects.filter(
+        plataforma=plataforma) for plataforma in plataformas}
+    paginator = Paginator(list(peliculas_por_director.items()), 4)
+    try:
+        peliculas_pagina = paginator.page(page)
+    except PageNotAnInteger:
+        peliculas_pagina = paginator.page(1)
+    except EmptyPage:
+        peliculas_pagina = paginator.page(paginator.num_pages)
+
+    return render(request, 'peliculas_agrupadas_por_plataforma.html', {'peliculas_plataforma': peliculas_pagina})
+
+
+def peliculas_agrupadas_por_genero(request):
+    request.session['origen'] = 'genero'
+    page = request.GET.get('page', 1)
+    generos = Generos.objects.all()
+    peliculas_por_genero = {}  # Diccionario de generos con sus peliculas
+    for genero in generos:
+        peliculas = Pelicula.objects.filter(generos=genero)
+        peliculas_unicas = {}  # Diccionario de peliculas unicas
+        for pelicula in peliculas:
+            # Si el título de la película no esta en el diccionario de peliculas unicas
+            if pelicula.titulo not in peliculas_unicas:
+                # Añadimos la pelicula al diccionario de peliculas unicas
+                peliculas_unicas[pelicula.titulo] = pelicula
+
+        # Añadimos al diccionario de peliculas por genero las peliculas unicas
+        peliculas_por_genero[genero] = peliculas_unicas.values()
+    paginator = Paginator(list(peliculas_por_genero.items()), 4)
+    try:
+        peliculas_pagina = paginator.page(page)
+    except PageNotAnInteger:
+        peliculas_pagina = paginator.page(1)
+    except EmptyPage:
+        peliculas_pagina = paginator.page(paginator.num_pages)
+
+    return render(request, 'peliculas_agrupadas_por_genero.html', {'peliculas_genero': peliculas_pagina})
+
+
+# BÚSQUEDAS #################################################
+def buscar(request):
+    pass
+
+
+# DETALLES #################################################
+def detalles_pelicula(request, pelicula_id):
+    pelicula = get_object_or_404(Pelicula, pk=pelicula_id)
+    return render(request, 'detalles_pelicula.html', {'pelicula': pelicula, 'origen': request.session.get('origen')})
+
+
+# GESTION DE USUARIOS #################################################
 @user_passes_test(lambda u: u.is_anonymous, login_url='index')
 def register(request):
     form = RegisterForm()
@@ -79,30 +136,14 @@ def user_login(request):
     return render(request, 'login.html', {'form': form})
 
 
+# Cerrar sesión, sólo los usuarios autenticados pueden cerrar sesión
 @user_passes_test(lambda u: u.is_authenticated, login_url='index')
 def logout_session(request):
     logout(request)
     return redirect('index')
 
 
-## FUNCIÓN AUXILIAR PARA CARGAR EL SISTEMA DE RECOMENDACIÓN ##############################
-def loadDict():
-    print("hola")
-
-
-# Cargar sistema de Recomendacion (RS), sólo los usuarios autenticados pueden cargar el RS
-@user_passes_test(lambda u: u.is_authenticated, login_url='index')
-def loadRS(request):
-    if request.method == 'POST':
-        if 'Aceptar' in request.POST:
-            loadDict()
-            mensaje = "Se ha cargado el sistema de recomendación correctamente"
-            return render(request, 'cargar_SR.html', {'mensaje': mensaje})
-        else:
-            return redirect("index")
-    return render(request, 'confirmar_SR.html')
-
-
+# CARGAR DATOS #################################################
 # Cargar BBDD, sólo los usuarios autenticados pueden cargar la BBDD
 @user_passes_test(lambda u: u.is_authenticated, login_url='index')
 def cargar(request):

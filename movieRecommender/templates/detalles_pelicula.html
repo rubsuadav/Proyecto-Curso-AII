@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+<div class="text-center flex justify-center">
+  {% block cabecera %}
+  <h4 class="text-xl font-semibold mb-4 text-white text-center">
+    Detalles de la película
+    <span class="text-red-500">{{ pelicula.titulo }}</span>
+  </h4>
+  {% endblock %} {% block content %}
+  <div class="container mx-auto px-4 pt-16">
+    <div class="mt-8">
+      <img src="{{ pelicula.imagen }}" />
+      <div class="mt-2">
+        <a class="text-xl mt-2 text-white">
+          <p>
+            Título:
+            <span class="text-red-500 text-xl">{{ pelicula.titulo }} </span>
+          </p>
+        </a>
+      </div>
+      <div class="mt-2">
+        <a class="text-xl mt-2 text-white">
+          <p>
+            Director:
+            <span class="text-yellow-500 text-2xl">
+              {{ pelicula.director }}
+            </span>
+          </p>
+        </a>
+      </div>
+      <div class="mt-2">
+        <a class="text-xl mt-2 text-white">
+          <p>
+            Duración:
+            <span class="text-green-500 text-2xl">
+              {{ pelicula.duracion }} minutos
+            </span>
+          </p>
+        </a>
+      </div>
+      <div class="mt-2">
+        <a class="text-xl mt-2 text-white">
+          <p>
+            Plataforma:
+            <span class="text-blue-500 text-2xl">
+              {{ pelicula.plataforma }}
+            </span>
+          </p>
+        </a>
+      </div>
+      <div class="mt-2">
+        <a class="text-xl mt-2 text-white">
+          <p class="text-justify">
+            Sinopsis:
+            <span class="text-teal-500 text-2xl">
+              {{ pelicula.sinopsis }}
+            </span>
+          </p>
+        </a>
+      </div>
+      <div class="mt-2">
+        <a class="text-xl mt-2 text-white">
+          <p>
+            Fecha de lanzamiento:
+            <span class="text-orange-500 text-2xl">
+              {{ pelicula.fecha_lanzamiento }}
+            </span>
+          </p>
+        </a>
+      </div>
+      &nbsp;
+      <p class="text-white text-xl">Géneros:</p>
+      {% for genero in pelicula.generos.all %}
+      <div class="flex items-center text-gray-400 text-sm mt-1 ml-16">
+        <p>
+          <span class="text-pink-600 text-center text-2xl">
+            {{ genero.nombre }}
+          </span>
+        </p>
+      </div>
+      {% endfor %} &nbsp;&nbsp;
+    </div>
+  </div>
+  <button
+    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mx-auto mt-4 text-3xl"
+  >
+    {% if origen == 'plataforma' %}
+    <a href="{% url 'agrupacion1' %}" class="text-white">Volver al listado</a>
+    {% else %}
+    <a href="{% url 'agrupacion2' %}" class="text-white">Volver al listado</a>
+    {% endif %}
+  </button>
+  &nbsp;
+</div>
+{% endblock %}
