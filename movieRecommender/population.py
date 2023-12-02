@@ -76,7 +76,9 @@ def upload_data_peliculas(datos3):
     else:
         sinopsis = "No hay sinopsis disponible"
 
-    return titulo, fecha, sinopsis
+    imagen = datos3.find("div", class_="title-poster").img['data-src']
+
+    return titulo, fecha, sinopsis, imagen
 
 
 def upload_generos(etiquetas_iguales, lista_generos):
@@ -149,7 +151,8 @@ def populateDB():
                     datos3 = s5.find("div", class_="jw-info-box")
 
                     if datos3 is not None:
-                        titulo, fecha, sinopsis = upload_data_peliculas(datos3)
+                        titulo, fecha, sinopsis, imagen = upload_data_peliculas(
+                            datos3)
                         lista_generos = []
 
                         # Obtenemos los géneros, el director y la duración
@@ -177,7 +180,8 @@ def populateDB():
 
                     # insertar datos en la base de datos
                     pelicula, created = Pelicula.objects.get_or_create(
-                        titulo=titulo, sinopsis=sinopsis, fecha_lanzamiento=fecha, duracion=duracion, director=director, plataforma=plataforma)
+                        titulo=titulo, sinopsis=sinopsis, fecha_lanzamiento=fecha, duracion=duracion,
+                        imagen=imagen, director=director, plataforma=plataforma)
 
                     # Crear o recuperar cada género individualmente
                     for nombre_genero in generos:
@@ -197,7 +201,8 @@ def populateDB():
 def create_shema_peliculas():
     shema = Schema(id=ID(stored=True, unique=True), titulo=TEXT(stored=True, phrase=True), sinopsis=TEXT(stored=True),
                    fecha_lanzamiento=NUMERIC(stored=True, numtype=int), duracion=NUMERIC(stored=True, numtype=int),
-                   director=NUMERIC(stored=True), plataforma=NUMERIC(stored=True), generos=KEYWORD(stored=True, commas=True))
+                   imagen=ID(stored=True), director=NUMERIC(stored=True), plataforma=NUMERIC(stored=True),
+                   generos=KEYWORD(stored=True, commas=True))
 
     if os.path.exists("indice_peliculas"):
         shutil.rmtree("indice_peliculas")
@@ -211,6 +216,7 @@ def create_shema_peliculas():
         generos = ','.join([str(genero) for genero in pelicula.generos.all()])
         writer.add_document(id=str(pelicula.id), titulo=pelicula.titulo, sinopsis=pelicula.sinopsis,
                             fecha_lanzamiento=pelicula.fecha_lanzamiento,
-                            duracion=pelicula.duracion, director=pelicula.director.id, plataforma=pelicula.plataforma.id,
+                            duracion=pelicula.duracion, imagen=pelicula.imagen,
+                            director=pelicula.director.id, plataforma=pelicula.plataforma.id,
                             generos=generos)
     writer.commit()

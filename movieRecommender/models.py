@@ -38,6 +38,7 @@ class Pelicula(models.Model):
     sinopsis = models.TextField(max_length=1000)
     fecha_lanzamiento = models.PositiveIntegerField()
     duracion = models.PositiveSmallIntegerField()  # En minutos
+    imagen = models.URLField()
     director = models.ForeignKey(Director, on_delete=models.CASCADE)
     plataforma = models.ForeignKey(
         Plataforma, on_delete=models.CASCADE, related_name="plataformas")
