@@ -85,9 +85,9 @@
   >
     {% if origen == 'plataforma' %}
     <a href="{% url 'agrupacion1' %}" class="text-white">Volver al listado</a>
-    {% else %}
+    {% endif %} {% if origen == 'genero' %}
     <a href="{% url 'agrupacion2' %}" class="text-white">Volver al listado</a>
-    {% if origen == 'busqueda_genero' %}
+    {% endif %} {% if origen == 'busqueda_genero' %}
     <a href="{% url 'busqueda1' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% if origen == 'busqueda_titulo_o_sinopsis' %}
     <a href="{% url 'busqueda2' %}" class="text-white">Volver a la búsqueda</a>
@@ -95,7 +95,9 @@
     <a href="{% url 'busqueda3' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% if origen == 'busqueda_fecha_lanzamiento' %}
     <a href="{% url 'busqueda4' %}" class="text-white">Volver a la búsqueda</a>
-    {% endif %} {% endif %}
+    {% endif %} {% if origen == 'recomendacion1' %}
+    <a href="{% url 'recom1' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %}
   </button>
   &nbsp;
 </div>

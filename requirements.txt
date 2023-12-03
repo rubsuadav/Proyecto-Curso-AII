@@ -1,5 +1,5 @@
 Django == 4.2.6
-numpy
+pandas
 Whoosh
 beautifulsoup4
 lxml

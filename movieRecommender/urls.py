@@ -13,6 +13,8 @@ urlpatterns = [
     # DETALLES
     path('peliculas/<int:pelicula_id>/',
          views.detalles_pelicula, name='detalles_pelicula'),
+    path('plataformas/<int:plataforma_id>/',
+         views.detalles_plataforma, name='detalles_plataforma'),
 
     # BÚSQUEDAS DE PELÍCULAS POR ATRIBUTOS
     path('buscarpeliculasporgenero/', views.buscar_por_genero, name='busqueda1'),
@@ -30,5 +32,9 @@ urlpatterns = [
 
     # CARGAR DATOS
     path('cargar/', views.cargar, name='cargar'),
-    # path('cargarSR/', views.loadRS, name='cargarSR')
+
+    # RECOMENDACIONES
+    path('recomendacionespeliculasportitulo/',
+         views.recomendar_pelicula_segun_titulo, name='recom1'),
+
 ]

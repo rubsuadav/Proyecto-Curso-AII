@@ -13,8 +13,13 @@ from whoosh.index import open_dir
 
 # Local imports
 from .population import populateDB
-from .forms import RegisterForm, LoginForm, GenerosForm, TituloSinopsisForm, GeneroTituloForm, FechaLanzamientoForm
+from .forms import RegisterForm, LoginForm, GenerosForm, TituloSinopsisForm, GeneroTituloForm, FechaLanzamientoForm, PeliculaBusquedaForm
 from .models import Pelicula, Director, Generos, Plataforma
+
+# Recomendations imports
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
+import pandas as pd
 
 
 def index(request):
@@ -68,7 +73,6 @@ def peliculas_agrupadas_por_genero(request):
 
 
 # BÚSQUEDAS #################################################
-# Busca por género
 def buscar_por_genero(request):
     request.session['origen'] = 'busqueda_genero'
     ix = open_dir("indice_peliculas")
@@ -169,6 +173,11 @@ def detalles_pelicula(request, pelicula_id):
     return render(request, 'detalles_pelicula.html', {'pelicula': pelicula, 'origen': request.session.get('origen')})
 
 
+def detalles_plataforma(request, plataforma_id):
+    plataforma = get_object_or_404(Plataforma, pk=plataforma_id)
+    return render(request, 'detalles_plataforma.html', {'plataforma': plataforma})
+
+
 # GESTION DE USUARIOS #################################################
 @user_passes_test(lambda u: u.is_anonymous, login_url='index')
 def register(request):
@@ -233,6 +242,7 @@ def logout_session(request):
 
 
 # CARGAR DATOS #################################################
+
 # Cargar BBDD, sólo los usuarios autenticados pueden cargar la BBDD
 @user_passes_test(lambda u: u.is_authenticated, login_url='index')
 def cargar(request):
@@ -246,3 +256,58 @@ def cargar(request):
         else:
             return redirect("index")
     return render(request, 'confirmar_carga_BD.html')
+
+
+## SISTEMA DE RECOMENDACIÓN BASADO EN CONTENIDOS #################################################
+
+# RECOMENDAR PELÍCULA SEGÚN TÍTULO, Sólo los usuarios autenticados pueden recomendar peliculas
+@user_passes_test(lambda u: u.is_authenticated, login_url='index')
+def recomendar_pelicula_segun_titulo(request):
+    request.session['origen'] = 'recomendacion1'
+    if request.method == 'POST':
+        form = PeliculaBusquedaForm(request.POST)
+        if form.is_valid():
+            nombre_pelicula = form.cleaned_data['nombre_pelicula']
+            peliculas_recomendadas = obtener_recomendaciones(nombre_pelicula)
+            return render(request, 'peliculas_recomendadas.html', {'peliculas': peliculas_recomendadas, 'form': form})
+    else:
+        form = PeliculaBusquedaForm()
+    return render(request, 'peliculas_recomendadas.html', {'form': form})
+
+
+# MÉTODOS QUE OBTIENEN LAS RECOMENDACIONES ##########################################
+# Método que obtiene las recomendaciones de peliculas
+def obtener_recomendaciones(titulo):
+    similitud_cos, indices, peliculas = calcular_similitud()
+    titulo = titulo.lower()
+    if titulo not in indices:
+        return []
+    idx = indices[titulo]
+    sim_scores = list(enumerate(similitud_cos[idx].flatten()))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:11]
+    movie_indices = [i[0] for i in sim_scores if i[0] < len(peliculas)]
+    return [peliculas[i] for i in movie_indices]
+
+
+# MÉTODOS QUE CALCULAN LA SIMILITUD DEL COSENO ##########################################
+# Método que obtiene las similitudes entre peliculas
+def calcular_similitud():
+    # Crear una representación de texto de cada película
+    peliculas = Pelicula.objects.all()
+    descripciones = peliculas.values_list(
+        'director__nombre', 'generos__nombre', 'plataforma__nombre')
+    descripciones = [' '.join(map(str, desc)) for desc in descripciones]
+
+    # Crear un vector de características para cada película
+    vectorizer = TfidfVectorizer()
+    matriz_tfidf = vectorizer.fit_transform(descripciones)
+
+    # Calcular la similitud del coseno
+    similitud_cos = linear_kernel(matriz_tfidf, matriz_tfidf)
+
+    # Para cada película, obtener las 10 películas más similares
+    indices = pd.Series(range(len(peliculas)), index=[
+                        pelicula.titulo.lower() for pelicula in peliculas]).drop_duplicates()
+
+    return similitud_cos, indices, peliculas

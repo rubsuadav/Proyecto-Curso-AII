@@ -87,3 +87,8 @@ class GeneroTituloForm(forms.Form):
 class FechaLanzamientoForm(forms.Form):
     fecha = forms.CharField(label='Introduce el año de lanzamiento', validators=[
         validate_fecha], widget=forms.TextInput, required=True)
+
+
+class PeliculaBusquedaForm(forms.Form):
+    nombre_pelicula = forms.CharField(label='Nombre de la película', max_length=100, min_length=1,
+                                      widget=forms.TextInput, required=True)

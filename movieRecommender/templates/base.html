@@ -134,7 +134,7 @@
             </div>
           </div>
         </nav>
-        <!--SÓLO USUARIOS LOGEADOS PUEDEN CARGAR LA BASE DE DATOS Y DESLOGEARSE-->
+        <!--SÓLO USUARIOS LOGEADOS PUEDEN CARGAR LA BASE DE DATOS, DESLOGEARSE Y USAR EL SISTEMA DE RECOMENDACION-->
         {% if user.is_authenticated %}
         <a
           class="inline-flex items-center bg-red-400 border-0 py-1 px-3 focus:outline-none hover:bg-red-500 rounded text-base mt-4 md:mt-0 text-white mr-8"
@@ -154,10 +154,27 @@
           </svg>
         </a>
         <a
-          class="inline-flex items-center bg-green-600 border-0 py-1 px-3 focus:outline-none hover:bg-green-400 rounded text-base mt-4 md:mt-0 text-white"
+          class="inline-flex items-center bg-green-600 border-0 py-1 px-3 focus:outline-none hover:bg-green-400 rounded text-base mt-4 md:mt-0 text-white mr-8"
           href="{% url 'logout' %}"
         >
           Cerrar sesion
+          <svg
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            class="w-4 h-4 ml-1"
+            viewBox="0 0 24 24"
+          >
+            <path d="M5 12h14M12 5l7 7-7 7"></path>
+          </svg>
+        </a>
+        <a
+          class="inline-flex items-center bg-blue-600 border-0 py-1 px-3 focus:outline-none hover:bg-blue-400 rounded text-base mt-4 md:mt-0 text-white mr-8"
+          href="{% url 'recom1' %}"
+        >
+          Recomendar Películas
           <svg
             fill="none"
             stroke="currentColor"
