@@ -3,7 +3,7 @@
   {% block cabecera %}
   <h4 class="text-xl font-semibold mb-4 text-white text-center">
     Detalles de la plataforma
-    <span class="text-red-500">{{ plataforma.titulo }}</span>
+    <span class="text-red-500">{{ plataforma.nombre }}</span>
   </h4>
   {% endblock %} {% block content %}
   <div class="container mx-auto px-4 pt-16">
@@ -32,16 +32,7 @@
           <span class="text-green-500 text-2xl">
             {{ plataforma.numero_producciones }} producciones
           </span>
-        </p>
-      </a>
-    </div>
-    <div class="mt-2">
-      <a class="text-xl mt-2 text-white">
-        <p>
-          Plataforma:
-          <span class="text-blue-500 text-2xl">
-            {{ plataforma.plataforma }}
-          </span>
+          &nbsp; &nbsp;
         </p>
       </a>
     </div>
@@ -49,8 +40,7 @@
   <button
     class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mx-auto mt-4 text-3xl"
   >
-    <a href="{% url 'recom2' %}" class="text-white">Volver al listado</a>
+    <a href="{% url 'busqueda1' %}" class="text-white">Volver al listado</a>
   </button>
-  &nbsp;
 </div>
 {% endblock %}

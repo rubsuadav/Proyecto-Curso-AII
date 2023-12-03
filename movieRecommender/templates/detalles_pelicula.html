@@ -38,14 +38,17 @@
         </a>
       </div>
       <div class="mt-2">
-        <a class="text-xl mt-2 text-white">
-          <p>
-            Plataforma:
-            <span class="text-blue-500 text-2xl">
+        <p class="text-xl mt-2 text-white">
+          Plataforma:
+          <a
+            class="text-blue-500 text-2xl"
+            href="{% url 'detalles_plataforma' pelicula.plataforma.id %}"
+          >
+            <span class="text-blue-500 text-2xl hover:text-blue-200 underline">
               {{ pelicula.plataforma }}
             </span>
-          </p>
-        </a>
+          </a>
+        </p>
       </div>
       <div class="mt-2">
         <a class="text-xl mt-2 text-white">
