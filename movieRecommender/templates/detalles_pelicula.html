@@ -93,6 +93,8 @@
     <a href="{% url 'busqueda2' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% if origen == 'busqueda_genero_y_titulo' %}
     <a href="{% url 'busqueda3' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %} {% if origen == 'busqueda_fecha_lanzamiento' %}
+    <a href="{% url 'busqueda4' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% endif %}
   </button>
   &nbsp;

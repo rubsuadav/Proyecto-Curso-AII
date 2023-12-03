@@ -16,6 +16,12 @@ def validate_email(value):
             'el email debe de ser de gmail, hotmail o outlook')
 
 
+def validate_fecha(value):
+    if not re.match(r'^\d{4}$', str(value)):
+        raise ValidationError(
+            'el año debe de ser de 4 dígitos')
+
+
 class RegisterForm(forms.Form):
     username = forms.CharField(
         label='Nombre de usuario',
@@ -76,3 +82,8 @@ class GeneroTituloForm(forms.Form):
         queryset=Generos.objects.all(), label='Selecciona el género', initial=random.choice(Generos.objects.all()))
     busqueda = forms.CharField(label='Introduce las palabras a buscar', max_length=100, min_length=1,
                                widget=forms.TextInput, required=False)
+
+
+class FechaLanzamientoForm(forms.Form):
+    fecha = forms.CharField(label='Introduce el año de lanzamiento', validators=[
+        validate_fecha], widget=forms.TextInput, required=True)

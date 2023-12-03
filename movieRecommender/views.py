@@ -13,7 +13,7 @@ from whoosh.index import open_dir
 
 # Local imports
 from .population import populateDB
-from .forms import RegisterForm, LoginForm, GenerosForm, TituloSinopsisForm, GeneroTituloForm
+from .forms import RegisterForm, LoginForm, GenerosForm, TituloSinopsisForm, GeneroTituloForm, FechaLanzamientoForm
 from .models import Pelicula, Director, Generos, Plataforma
 
 
@@ -68,6 +68,7 @@ def peliculas_agrupadas_por_genero(request):
 
 
 # BÚSQUEDAS #################################################
+# Busca por género
 def buscar_por_genero(request):
     request.session['origen'] = 'busqueda_genero'
     ix = open_dir("indice_peliculas")
@@ -105,7 +106,7 @@ def buscar_titulo_o_sinopsis(request):
         return render(request, 'buscar_peliculas_titulo_o_sinopsis.html', {'form': form})
 
 
-# Busca por genero y por frase en el título
+# Busca por genero y por frase/palabra en el título
 def buscar_genero_y_titulo(request):
     request.session['origen'] = 'busqueda_genero_y_titulo'
     ix = open_dir("indice_peliculas")
@@ -119,13 +120,34 @@ def buscar_genero_y_titulo(request):
                 titulo_query = QueryParser("titulo", ix.schema).parse(en)
                 generos_query = QueryParser(
                     "generos", ix.schema).parse(f'"{sp}"')
-
                 query = And([titulo_query, generos_query])
                 results = searcher.search(query, limit=20)
                 peliculas = borrar_peliculas_duplicadas(results)
                 return render(request, 'buscar_peliculas_generos_y_titulo.html', {'peliculas': peliculas, 'form': form})
     else:
         return render(request, 'buscar_peliculas_generos_y_titulo.html', {'form': form})
+
+
+# Busca por fecha de lanzamiento y obtiene las 5 peliculas más recientes y con menor duración
+def buscar_fecha_lanzamiento(request):
+    request.session['origen'] = 'busqueda_fecha_lanzamiento'
+    ix = open_dir("indice_peliculas")
+    form = FechaLanzamientoForm()
+    if request.method == 'POST':
+        form = FechaLanzamientoForm(request.POST)
+        if form.is_valid():
+            fecha = form.cleaned_data['fecha']
+            with ix.searcher() as searcher:
+                query = QueryParser("fecha_lanzamiento",
+                                    ix.schema).parse(f'"{fecha}"')
+                results = searcher.search(
+                    query, limit=5, sortedby="duracion", reverse=False)
+                peliculas = borrar_peliculas_duplicadas(results)
+                return render(request, 'buscar_peliculas_fecha_lanzamiento.html', {'peliculas': peliculas, 'form': form})
+        else:
+            return render(request, 'buscar_peliculas_fecha_lanzamiento.html', {'form': form})
+    else:
+        return render(request, 'buscar_peliculas_fecha_lanzamiento.html', {'form': form})
 
 
 # MÉTODOS AUXILIARES #################################################
