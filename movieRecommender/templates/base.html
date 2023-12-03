@@ -35,22 +35,101 @@
         <nav
           class="md:mr-auto md:ml-4 md:py-1 md:pl-4 md:border-l md:border-gray-400 flex flex-wrap items-center text-base justify-center"
         >
-          <a class="mr-5 hover:text-gray-900" href="{% url 'agrupacion1' %}"
-            >Películas agrupadas por plataforma</a
-          >
-          <a class="mr-5 hover:text-gray-900" href="{% url 'agrupacion2' %}"
-            >Películas agrupadas por géneros</a
-          >
-          <a class="mr-5 hover:text-gray-900" href="{% url 'busqueda1' %}"
-            >Búsqueda por géneros</a
-          >
-          <a class="mr-5 hover:text-gray-900" href="{% url 'busqueda2' %}"
-            >Búsqueda por Título o Sinopsis</a
-          >
+          <div class="group inline-block text-left relative mr-12">
+            <button
+              class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Agrupaciones
+              <svg
+                class="-mr-1 ml-2 h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+            <div
+              class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+            >
+              <div
+                class="py-1"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="options-menu"
+              >
+                <a
+                  href="{% url 'agrupacion1' %}"
+                  class="block px-4 py-2 text-lg text-white hover:bg-yellow-300 hover:text-gray-900 bg-yellow-700"
+                  role="menuitem"
+                  >Películas agrupadas por plataforma</a
+                >
+                <a
+                  href="{% url 'agrupacion2' %}"
+                  class="block px-4 py-2 text-lg border-t-8 text-white hover:bg-fuchsia-300 hover:text-gray-900 bg-fuchsia-700"
+                  role="menuitem"
+                  >Películas agrupadas por géneros</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="group inline-block text-left relative">
+            <button
+              class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Búsquedas
+              <svg
+                class="-mr-1 ml-2 h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+            <div
+              class="origin-top-right absolute right-0 left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+            >
+              <div
+                class="py-1"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="options-menu"
+              >
+                <a
+                  href="{% url 'busqueda1' %}"
+                  class="block px-4 py-2 text-lg text-white hover:bg-blue-300 hover:text-gray-900 bg-blue-700"
+                  role="menuitem"
+                  >Búsqueda por géneros</a
+                >
+                <a
+                  href="{% url 'busqueda2' %}"
+                  class="block px-4 py-2 text-lg text-white hover:bg-red-300 hover:text-gray-900 border-t-8 bg-red-700"
+                  role="menuitem"
+                  >Búsqueda por Título o Sinopsis</a
+                >
+                <a
+                  href="{% url 'busqueda3' %}"
+                  class="block px-4 py-2 text-lg text-white hover:bg-green-300 hover:text-gray-900 border-t-8 bg-green-700"
+                  role="menuitem"
+                  >Búsqueda por Género y Título</a
+                >
+              </div>
+            </div>
+          </div>
         </nav>
         <!--SÓLO USUARIOS LOGEADOS PUEDEN CARGAR LA BASE DE DATOS Y DESLOGEARSE-->
         {% if user.is_authenticated %}
-
         <a
           class="inline-flex items-center bg-red-400 border-0 py-1 px-3 focus:outline-none hover:bg-red-500 rounded text-base mt-4 md:mt-0 text-white mr-8"
           href="{% url 'cargar' %}"
@@ -131,4 +210,27 @@
     {% block pie %}{% endblock %}
   </body>
   {% include 'footer.html' %}
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      let groups = document.querySelectorAll(".group");
+      groups.forEach(function (group) {
+        let button = group.querySelector("button");
+        let dropdown = group.querySelector("div");
+
+        // Establecer inicialmente el desplegable como cerrado
+        dropdown.style.display = "none";
+
+        button.addEventListener("click", function () {
+          let isShown = dropdown.style.display === "block";
+          dropdown.style.display = isShown ? "none" : "block";
+        });
+        document.addEventListener("click", function (event) {
+          if (!group.contains(event.target)) {
+            dropdown.style.display = "none";
+          }
+        });
+      });
+    });
+  </script>
 </html>

@@ -18,6 +18,8 @@ urlpatterns = [
     path('buscarpeliculasporgenero/', views.buscar_por_genero, name='busqueda1'),
     path('buscarpeliculasportituloosinopsis/',
          views.buscar_titulo_o_sinopsis, name='busqueda2'),
+    path('buscarpeliculasporgeneroytitulo/',
+         views.buscar_genero_y_titulo, name='busqueda3'),
 
     # GESTION DE USUARIOS
     path('registro/', views.register, name='registro'),

@@ -8,17 +8,18 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Whooosh imports
 from whoosh.qparser import QueryParser, MultifieldParser, OrGroup
+from whoosh.query import And
 from whoosh.index import open_dir
 
 # Local imports
 from .population import populateDB
-from .forms import RegisterForm, LoginForm
+from .forms import RegisterForm, LoginForm, GenerosForm, TituloSinopsisForm, GeneroTituloForm
 from .models import Pelicula, Director, Generos, Plataforma
-from .forms import GenerosForm, TituloSinopsisForm
 
 
 def index(request):
-    return render(request, 'index.html', {'peliculas': Pelicula.objects.all(), 'directores': Director.objects.all(), 'generos': Generos.objects.all(), 'plataformas': Plataforma.objects.all()})
+    return render(request, 'index.html', {'peliculas': Pelicula.objects.all(),
+                                          'directores': Director.objects.all(), 'generos': Generos.objects.all(), 'plataformas': Plataforma.objects.all()})
 
 
 # AGRUPACIONES #################################################
@@ -85,6 +86,7 @@ def buscar_por_genero(request):
         return render(request, 'buscar_peliculas_genero.html', {'form': form})
 
 
+# Busca por frase en el título o por palabra que esté en la sinopsis
 def buscar_titulo_o_sinopsis(request):
     request.session['origen'] = 'busqueda_titulo_o_sinopsis'
     ix = open_dir("indice_peliculas")
@@ -92,15 +94,38 @@ def buscar_titulo_o_sinopsis(request):
     if request.method == 'POST':
         form = TituloSinopsisForm(request.POST)
         if form.is_valid():
-            en = form.cleaned_data['titulo'] + form.cleaned_data['sinopsis']
+            en = form.cleaned_data['busqueda']
             with ix.searcher() as searcher:
                 query = MultifieldParser(
-                    ["titulo", "sinopsis"], ix.schema, group=OrGroup).parse(str(en))
+                    ["titulo", "sinopsis"], ix.schema, group=OrGroup).parse('"' + en + '"')
                 results = searcher.search(query, limit=10)
                 peliculas = borrar_peliculas_duplicadas(results)
                 return render(request, 'buscar_peliculas_titulo_o_sinopsis.html', {'peliculas': peliculas, 'form': form})
     else:
         return render(request, 'buscar_peliculas_titulo_o_sinopsis.html', {'form': form})
+
+
+# Busca por genero y por frase en el título
+def buscar_genero_y_titulo(request):
+    request.session['origen'] = 'busqueda_genero_y_titulo'
+    ix = open_dir("indice_peliculas")
+    form = GeneroTituloForm()
+    if request.method == 'POST':
+        form = GeneroTituloForm(request.POST)
+        if form.is_valid():
+            en = form.cleaned_data['busqueda']
+            sp = form.cleaned_data['generos'].nombre
+            with ix.searcher() as searcher:
+                titulo_query = QueryParser("titulo", ix.schema).parse(en)
+                generos_query = QueryParser(
+                    "generos", ix.schema).parse(f'"{sp}"')
+
+                query = And([titulo_query, generos_query])
+                results = searcher.search(query, limit=20)
+                peliculas = borrar_peliculas_duplicadas(results)
+                return render(request, 'buscar_peliculas_generos_y_titulo.html', {'peliculas': peliculas, 'form': form})
+    else:
+        return render(request, 'buscar_peliculas_generos_y_titulo.html', {'form': form})
 
 
 # MÉTODOS AUXILIARES #################################################
@@ -113,7 +138,6 @@ def borrar_peliculas_duplicadas(results):
             peliculas_set.add(result['titulo'])
             # Añadimos la pelicula a la lista de peliculas
             peliculas.append(result)
-
     return peliculas
 
 

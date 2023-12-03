@@ -67,7 +67,12 @@ class GenerosForm(forms.Form):
 
 
 class TituloSinopsisForm(forms.Form):
-    titulo = forms.CharField(label='Título', max_length=100, min_length=1,
-                             widget=forms.TextInput, required=False)
-    sinopsis = forms.CharField(label='Sinopsis', max_length=100, min_length=1,
+    busqueda = forms.CharField(label='Introduce las palabras a buscar', max_length=100, min_length=1,
+                               widget=forms.TextInput, required=False)
+
+
+class GeneroTituloForm(forms.Form):
+    generos = forms.ModelChoiceField(
+        queryset=Generos.objects.all(), label='Selecciona el género', initial=random.choice(Generos.objects.all()))
+    busqueda = forms.CharField(label='Introduce las palabras a buscar', max_length=100, min_length=1,
                                widget=forms.TextInput, required=False)

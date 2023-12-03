@@ -40,33 +40,33 @@
   </h4>
   <br />
   <ul class="list-group space-y-4">
-    <li
-      class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white text-center font-serif text-lg"
-    >
-      <b>Este ménu de inicio que te muestran los datos de la BBDD</b>
-    </li>
-    <br />
-    <li
-      class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white text-center font-serif text-lg"
-    >
-      <b
-        >Agrupación de películas por plataformas con un enlace a sus detalles</b
-      >
-    </li>
-    <br />
-    <li
-      class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white text-center font-serif text-lg"
-    >
-      <b>Agrupación de películas por géneros con un enlace a sus detalles</b>
-    </li>
-    <br />
+    {% if user.is_authenticated %}
     <li
       class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white text-center font-serif text-lg"
     >
       <b>Cargar la BBDD creando el Esquema de Whoosh</b>
     </li>
     <br />
-    <!--AGREGAR MAS FUNCIONALIDADES AQUI-->
+    <li
+      class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white text-center font-serif text-lg"
+    >
+      <b>Cerrar sesión</b>
+    </li>
+    <br />
+    {% include 'listado_comun.html' %} {% else %}
+    <li
+      class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white text-center font-serif text-lg"
+    >
+      <b>Iniciar sesión</b>
+    </li>
+    <br />
+    <li
+      class="bg-gray-800 shadow-lg rounded-lg px-4 py-2 mb-2 text-white text-center font-serif text-lg"
+    >
+      <b>Registrarse</b>
+    </li>
+    <br />
+    {% include 'listado_comun.html' %} {% endif %}
   </ul>
   <br />
   <br />

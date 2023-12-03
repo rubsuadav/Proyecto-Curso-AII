@@ -1,7 +1,7 @@
 {% extends 'base.html' %} {% block cabecera %}
 <div class="text-center">
   <h4 class="text-2xl font-semibold mb-4 text-white text-center">
-    Búsqueda de Películas por Título o Sinopsis
+    Búsqueda de Películas por Género y Título
   </h4>
   {% endblock %} {% block content %}
   <div class="items-center justify-center text-center flex">
@@ -26,7 +26,7 @@
       Total de Películas encontradas:
       <span class="text-red-600 text-3xl">{{peliculas|length}}</span>
     </h2>
-    <div class="grid grid-cols-6 gap-6">
+    <div class="items-center justify-center">
       {% for dato in peliculas %}
       <div class="mt-8">
         <img src="{{ dato.imagen }}" />
@@ -40,6 +40,14 @@
               <span
                 class="text-green-500 text-xl hover:text-green-200 underline"
                 >{{ dato.titulo }}
+              </span>
+            </a>
+          </p>
+          <p class="text-lg mt-2 text-white">
+            Duracion:
+            <a class="text-lg mt-2 hover:text-blue-500 text-white">
+              <span class="text-red-500 text-xl"
+                >{{ dato.duracion }} minutos
               </span>
             </a>
           </p>
