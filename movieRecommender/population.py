@@ -6,7 +6,7 @@ from whoosh.fields import *
 from bs4 import BeautifulSoup
 
 # Models imports
-from .models import Plataforma, Pelicula, Generos, Director
+from .models import Plataforma, Pelicula, Generos, Director, Pais
 
 # Others imports
 import os
@@ -129,12 +129,29 @@ def upload_calificacion(etiquetas_iguales):
     return calificacion
 
 
+def upload_paises_produccion(etiquetas_iguales, lista_paises):
+    paises_etiq = etiquetas_iguales.find_next_sibling(
+        "div")
+    if paises_etiq.text.strip() != "":
+        paises = "".join(
+            paises_etiq.stripped_strings)
+        # Dividir la cadena de paises en una lista de paises
+        paises = [pais.strip()
+                  for pais in paises.split(",")]
+        lista_paises += paises
+    else:
+        lista_paises.append("No disponible")
+
+    return lista_paises
+
+
 def populateDB():
     # borrar tablas
     Plataforma.objects.all().delete()
     Pelicula.objects.all().delete()
     Generos.objects.all().delete()
     Director.objects.all().delete()
+    Pais.objects.all().delete()
 
     s = permission_to_scrap("")
 
@@ -173,13 +190,14 @@ def populateDB():
                         titulo, fecha, sinopsis, imagen = upload_data_peliculas(
                             datos3)
                         lista_generos = []
+                        lista_paises = []
 
-                        # Obtenemos los géneros, el director y la duración
+                        # Obtenemos los géneros, el director, la duración, la calificación y los países de producción
                         datos4 = datos3.find(
                             "div", class_="title-info").find_all("div", class_="detail-infos")
                         for d4 in datos4:
                             etiquetas_iguales = d4.find(
-                                "h3", class_="detail-infos__subheading")  # los 3 atribs tienen misma etiqueta
+                                "h3", class_="detail-infos__subheading")  # los 5 atribs tienen misma etiqueta
 
                             if etiquetas_iguales.text.strip() == "Géneros":
                                 generos = upload_generos(
@@ -201,6 +219,10 @@ def populateDB():
                                 calificacion = upload_calificacion(
                                     etiquetas_iguales)
 
+                            if etiquetas_iguales.text.strip() == "País de producción":
+                                paises_produccion = upload_paises_produccion(
+                                    etiquetas_iguales, lista_paises)
+
                     # insertar datos en la base de datos
                     pelicula, created = Pelicula.objects.get_or_create(
                         titulo=titulo, sinopsis=sinopsis, fecha_lanzamiento=fecha, duracion=duracion,
@@ -212,6 +234,13 @@ def populateDB():
                             nombre=nombre_genero)
                         # añadir géneros a la pelicula
                         pelicula.generos.add(genero)
+
+                    # Crear o recuperar cada país individualmente
+                    for nombre_pais in paises_produccion:
+                        pais, created = Pais.objects.get_or_create(
+                            nombre=nombre_pais)
+                        # añadir paises a la pelicula
+                        pelicula.pais.add(pais)
 
     # Crear esquema de las peliculas
     print("Creando esquema de las peliculas...")
@@ -225,7 +254,8 @@ def create_shema_peliculas():
     shema = Schema(id=ID(stored=True, unique=True), titulo=TEXT(stored=True, phrase=True), sinopsis=TEXT(stored=True),
                    fecha_lanzamiento=NUMERIC(stored=True, numtype=int), duracion=NUMERIC(stored=True, numtype=int),
                    imagen=ID(stored=True), director=NUMERIC(stored=True), plataforma=NUMERIC(stored=True),
-                   generos=KEYWORD(stored=True, commas=True), calificacion=NUMERIC(stored=True, numtype=int))
+                   generos=KEYWORD(stored=True, commas=True), calificacion=NUMERIC(stored=True, numtype=int),
+                   paises=KEYWORD(stored=True, commas=True))
 
     if os.path.exists("indice_peliculas"):
         shutil.rmtree("indice_peliculas")
@@ -238,9 +268,10 @@ def create_shema_peliculas():
     for pelicula in lista_peliculas:
         generos = ','.join([str(genero.nombre)
                            for genero in pelicula.generos.all()])
+        paises = ','.join([str(pais.nombre) for pais in pelicula.pais.all()])
         writer.add_document(id=str(pelicula.id), titulo=pelicula.titulo, sinopsis=pelicula.sinopsis,
                             fecha_lanzamiento=pelicula.fecha_lanzamiento,
                             duracion=pelicula.duracion, imagen=pelicula.imagen,
                             director=pelicula.director.id, plataforma=pelicula.plataforma.id,
-                            generos=generos, calificacion=pelicula.calificacion)
+                            generos=generos, calificacion=pelicula.calificacion, paises=paises)
     writer.commit()
