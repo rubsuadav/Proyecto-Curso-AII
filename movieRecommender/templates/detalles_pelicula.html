@@ -90,7 +90,17 @@
           </span>
         </p>
       </div>
-      {% endfor %} &nbsp;&nbsp;
+      {% endfor %} &nbsp;
+      <p class="text-white text-xl">Países de producción:</p>
+      {% for pais in pelicula.pais.all %}
+      <div class="flex items-center text-gray-400 text-sm mt-1 ml-16">
+        <p>
+          <span class="text-purple-600 text-center text-2xl">
+            {{ pais.nombre }}
+          </span>
+        </p>
+      </div>
+      {% endfor %} &nbsp; &nbsp;
     </div>
   </div>
 
@@ -109,7 +119,9 @@
     <a href="{% url 'busqueda3' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% if origen == 'busqueda_fecha_lanzamiento' %}
     <a href="{% url 'busqueda4' %}" class="text-white">Volver a la búsqueda</a>
-    {% endif %} {% if origen == 'recomendacion1' %}
+    {% endif %}{% if origen == 'busqueda_genero_y_pais_o_pais_y_sinopsis' %}
+    <a href="{% url 'busqueda5' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %}{% if origen == 'recomendacion1' %}
     <a href="{% url 'recom1' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% if origen == 'populares' %}
     <a href="{% url 'pelis_populares' %}" class="text-white"

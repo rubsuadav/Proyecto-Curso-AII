@@ -52,7 +52,9 @@
     <a href="{% url 'busqueda3' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% if request.session.origen == 'busqueda_fecha_lanzamiento' %}
     <a href="{% url 'busqueda4' %}" class="text-white">Volver a la búsqueda</a>
-    {% endif %} {% if request.session.origen == 'recomendacion1' %}
+    {% endif %} {% if request.session.origen == 'busqueda_genero_y_pais_o_pais_y_sinopsis' %}
+    <a href="{% url 'busqueda5' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %}{% if request.session.origen == 'recomendacion1' %}
     <a href="{% url 'recom1' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% if request.session.origen == 'populares' %}
     <a href="{% url 'pelis_populares' %}" class="text-white"

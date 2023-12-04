@@ -3,7 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 # Local imports
-from .models import Generos
+from .models import Generos, Pais
 
 # Python imports
 import re
@@ -91,3 +91,12 @@ class FechaLanzamientoForm(forms.Form):
 class PeliculaBusquedaForm(forms.Form):
     nombre_pelicula = forms.CharField(label='Nombre de la película', max_length=100, min_length=1,
                                       widget=forms.TextInput, required=True)
+
+
+class GeneroPaisSinopsisForm(forms.Form):
+    generos = forms.ModelChoiceField(
+        queryset=Generos.objects.all(), label='Selecciona el género')
+    pais = forms.ModelChoiceField(
+        queryset=Pais.objects.all(), label='Selecciona el país')
+    busqueda = forms.CharField(label='Introduce las palabras a buscar', max_length=100, min_length=1,
+                               widget=forms.TextInput, required=False)

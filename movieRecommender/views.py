@@ -8,13 +8,13 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Whooosh imports
 from whoosh.qparser import QueryParser, MultifieldParser, OrGroup
-from whoosh.query import And
+from whoosh.query import And, Or
 from whoosh.index import open_dir
 
 # Local imports
 from .population import populateDB
-from .forms import RegisterForm, LoginForm, GenerosForm, TituloSinopsisForm, GeneroTituloForm, FechaLanzamientoForm, PeliculaBusquedaForm
-from .models import Pelicula, Director, Generos, Plataforma
+from .forms import *
+from .models import Pelicula, Director, Generos, Plataforma, Pais
 
 # Recomendations imports
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -24,7 +24,7 @@ import pandas as pd
 
 def index(request):
     return render(request, 'index.html', {'peliculas': Pelicula.objects.all(),
-                                          'directores': Director.objects.all(), 'generos': Generos.objects.all(), 'plataformas': Plataforma.objects.all()})
+                                          'directores': Director.objects.all(), 'generos': Generos.objects.all(), 'plataformas': Plataforma.objects.all(), 'paises': Pais.objects.all()})
 
 
 # Devuelve las 20 peliculas más populares (con mayor calificación)
@@ -41,6 +41,14 @@ def peliculas_mas_populares(request):
     except EmptyPage:
         peliculas_pagina = paginator.page(paginator.num_pages)
 
+    for pelicula in peliculas_pagina:
+        calificacion = pelicula.calificacion
+        if calificacion >= 1000000:
+            pelicula.calificacion = f'{int(calificacion/1000000)}M'
+        elif calificacion >= 1000:
+            pelicula.calificacion = f'{int(calificacion/1000)}k'
+        elif calificacion == 0:
+            pelicula.calificacion = 'Sin calificar'
     return render(request, 'peliculas_mas_populares.html', {'peliculas': peliculas_pagina,
                                                             'totales': veinte_peliculas})
 
@@ -148,6 +156,32 @@ def buscar_genero_y_titulo(request):
                 return render(request, 'buscar_peliculas_generos_y_titulo.html', {'peliculas': peliculas, 'form': form})
     else:
         return render(request, 'buscar_peliculas_generos_y_titulo.html', {'form': form})
+
+
+# Busca por (genero y por país de producción) o por (país de producción y palabra en la sinopsis)
+def buscar_genero_y_pais_o_pais_y_sinopsis(request):
+    request.session['origen'] = 'busqueda_genero_y_pais_o_pais_y_sinopsis'
+    ix = open_dir("indice_peliculas")
+    form = GeneroPaisSinopsisForm()
+    if request.method == 'POST':
+        form = GeneroPaisSinopsisForm(request.POST)
+        if form.is_valid():
+            en = form.cleaned_data['busqueda']
+            sp = form.cleaned_data['pais'].nombre
+            genero = form.cleaned_data['generos'].nombre
+            with ix.searcher() as searcher:
+                pais_query = QueryParser("paises", ix.schema).parse(f'"{sp}"')
+                genero_query = QueryParser(
+                    "generos", ix.schema).parse(f'"{genero}"')
+                sinopsis_query = QueryParser(
+                    "sinopsis", ix.schema).parse(en)
+                query = Or([And([pais_query, genero_query]), And(
+                    [pais_query, sinopsis_query])])  # (pais & genero) || (pais & sinopsis) --> pais & (genero || sinopsis)
+                results = searcher.search(query, limit=20)
+                peliculas = borrar_peliculas_duplicadas(results)
+                return render(request, 'buscar_peliculas_generos_y_pais_o_pais_y_sinopsis.html', {'peliculas': peliculas, 'form': form})
+    else:
+        return render(request, 'buscar_peliculas_generos_y_pais_o_pais_y_sinopsis.html', {'form': form})
 
 
 # Busca por fecha de lanzamiento y obtiene las 5 peliculas más recientes y con menor duración
