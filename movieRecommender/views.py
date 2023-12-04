@@ -27,6 +27,24 @@ def index(request):
                                           'directores': Director.objects.all(), 'generos': Generos.objects.all(), 'plataformas': Plataforma.objects.all()})
 
 
+# Devuelve las 20 peliculas más populares (con mayor calificación)
+def peliculas_mas_populares(request):
+    request.session['origen'] = 'populares'
+    page = request.GET.get('page', 1)
+    peliculas = Pelicula.objects.all().order_by('-calificacion')
+    veinte_peliculas = borrar_peliculas_duplicadas_2(peliculas)[:20]
+    paginator = Paginator(veinte_peliculas, 4)
+    try:
+        peliculas_pagina = paginator.page(page)
+    except PageNotAnInteger:
+        peliculas_pagina = paginator.page(1)
+    except EmptyPage:
+        peliculas_pagina = paginator.page(paginator.num_pages)
+
+    return render(request, 'peliculas_mas_populares.html', {'peliculas': peliculas_pagina,
+                                                            'totales': veinte_peliculas})
+
+
 # AGRUPACIONES #################################################
 def peliculas_agrupadas_por_plataforma(request):
     request.session['origen'] = 'plataforma'
@@ -167,10 +185,33 @@ def borrar_peliculas_duplicadas(results):
     return peliculas
 
 
+def borrar_peliculas_duplicadas_2(results):
+    peliculas_set = set()
+    peliculas = []
+    for result in results:
+        if result.titulo not in peliculas_set:
+            # Añadimos la pelicula al conjunto de peliculas
+            peliculas_set.add(result.titulo)
+            # Añadimos la pelicula a la lista de peliculas
+            peliculas.append(result)
+    return peliculas
+
+
 # DETALLES #################################################
 def detalles_pelicula(request, pelicula_id):
     pelicula = get_object_or_404(Pelicula, pk=pelicula_id)
-    return render(request, 'detalles_pelicula.html', {'pelicula': pelicula, 'origen': request.session.get('origen')})
+    calificacion = pelicula.calificacion
+    if calificacion >= 1000000:
+        return render(request, 'detalles_pelicula.html', {'pelicula': pelicula,
+                                                          'origen': request.session.get('origen'),
+                                                          'calificacion': f'{int(calificacion/1000000)}M'})
+    elif calificacion >= 1000:
+        return render(request, 'detalles_pelicula.html', {'pelicula': pelicula,
+                                                          'origen': request.session.get('origen'),
+                                                          'calificacion': f'{int(calificacion/1000)}k'})
+    elif calificacion == 0:
+        return render(request, 'detalles_pelicula.html', {'pelicula': pelicula, 'origen': request.session.get('origen'),
+                                                          'calificacion': 'Sin calificar'})
 
 
 def detalles_plataforma(request, plataforma_id):

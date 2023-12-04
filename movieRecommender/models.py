@@ -43,6 +43,7 @@ class Pelicula(models.Model):
     plataforma = models.ForeignKey(
         Plataforma, on_delete=models.CASCADE, related_name="plataformas")
     generos = models.ManyToManyField(Generos)
+    calificacion = models.PositiveBigIntegerField()
 
     def __str__(self):
         return self.titulo

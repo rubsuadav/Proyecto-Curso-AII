@@ -40,7 +40,25 @@
   <button
     class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mx-auto mt-4 text-3xl"
   >
-    <a href="{% url 'busqueda1' %}" class="text-white">Volver al listado</a>
+    {% if request.session.origen == 'plataforma' %}
+    <a href="{% url 'agrupacion1' %}" class="text-white">Volver al listado</a>
+    {% endif %} {% if request.session.origen == 'genero' %}
+    <a href="{% url 'agrupacion2' %}" class="text-white">Volver al listado</a>
+    {% endif %} {% if request.session.origen == 'busqueda_genero' %}
+    <a href="{% url 'busqueda1' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %} {% if request.session.origen == 'busqueda_titulo_o_sinopsis' %}
+    <a href="{% url 'busqueda2' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %} {% if request.session.origen == 'busqueda_genero_y_titulo' %}
+    <a href="{% url 'busqueda3' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %} {% if request.session.origen == 'busqueda_fecha_lanzamiento' %}
+    <a href="{% url 'busqueda4' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %} {% if request.session.origen == 'recomendacion1' %}
+    <a href="{% url 'recom1' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %} {% if request.session.origen == 'populares' %}
+    <a href="{% url 'pelis_populares' %}" class="text-white"
+      >Volver a la búsqueda</a
+    >
+    {% endif %}
   </button>
 </div>
 {% endblock %}

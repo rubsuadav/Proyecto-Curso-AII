@@ -3,6 +3,8 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('peliculasmaspopulares/',
+         views.peliculas_mas_populares, name='pelis_populares'),
 
     # AGRUPACIONES DE PELÍCULAS POR ATRIBUTOS
     path('peliculasagrupadasporplataforma/',

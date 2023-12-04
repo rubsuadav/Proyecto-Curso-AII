@@ -70,6 +70,16 @@
           </p>
         </a>
       </div>
+      <div class="mt-2">
+        <a class="text-xl mt-2 text-white">
+          <p>
+            Calificación:
+            <span class="text-orange-500 text-2xl">
+              {{ calificacion }} visitas
+            </span>
+          </p>
+        </a>
+      </div>
       &nbsp;
       <p class="text-white text-xl">Géneros:</p>
       {% for genero in pelicula.generos.all %}
@@ -83,6 +93,7 @@
       {% endfor %} &nbsp;&nbsp;
     </div>
   </div>
+
   <button
     class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mx-auto mt-4 text-3xl"
   >
@@ -100,6 +111,10 @@
     <a href="{% url 'busqueda4' %}" class="text-white">Volver a la búsqueda</a>
     {% endif %} {% if origen == 'recomendacion1' %}
     <a href="{% url 'recom1' %}" class="text-white">Volver a la búsqueda</a>
+    {% endif %} {% if origen == 'populares' %}
+    <a href="{% url 'pelis_populares' %}" class="text-white"
+      >Volver a la búsqueda</a
+    >
     {% endif %}
   </button>
   &nbsp;

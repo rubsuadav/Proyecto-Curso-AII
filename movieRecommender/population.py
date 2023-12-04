@@ -113,6 +113,22 @@ def upload_duración(etiquetas_iguales):
     return duracion
 
 
+def upload_calificacion(etiquetas_iguales):
+    try:
+        calificacion_texto = etiquetas_iguales.find_next_sibling(
+            "div").find_all("span")[1].text.strip().split(" ")[1].replace("(", "").replace(")", "")
+        if 'k' in calificacion_texto:
+            calificacion = int(
+                calificacion_texto.replace('k', '')) * 1000
+        elif 'm' in calificacion_texto:
+            calificacion = int(
+                calificacion_texto.replace('m', '')) * 1000000
+    except:
+        calificacion = 0
+
+    return calificacion
+
+
 def populateDB():
     # borrar tablas
     Plataforma.objects.all().delete()
@@ -181,10 +197,14 @@ def populateDB():
                                 director, created = Director.objects.get_or_create(
                                     nombre=nombre_director)
 
+                            if etiquetas_iguales.text.strip() == "Calificación":
+                                calificacion = upload_calificacion(
+                                    etiquetas_iguales)
+
                     # insertar datos en la base de datos
                     pelicula, created = Pelicula.objects.get_or_create(
                         titulo=titulo, sinopsis=sinopsis, fecha_lanzamiento=fecha, duracion=duracion,
-                        imagen=imagen, director=director, plataforma=plataforma)
+                        imagen=imagen, director=director, plataforma=plataforma, calificacion=calificacion)
 
                     # Crear o recuperar cada género individualmente
                     for nombre_genero in generos:
@@ -205,7 +225,7 @@ def create_shema_peliculas():
     shema = Schema(id=ID(stored=True, unique=True), titulo=TEXT(stored=True, phrase=True), sinopsis=TEXT(stored=True),
                    fecha_lanzamiento=NUMERIC(stored=True, numtype=int), duracion=NUMERIC(stored=True, numtype=int),
                    imagen=ID(stored=True), director=NUMERIC(stored=True), plataforma=NUMERIC(stored=True),
-                   generos=KEYWORD(stored=True, commas=True))
+                   generos=KEYWORD(stored=True, commas=True), calificacion=NUMERIC(stored=True, numtype=int))
 
     if os.path.exists("indice_peliculas"):
         shutil.rmtree("indice_peliculas")
@@ -222,5 +242,5 @@ def create_shema_peliculas():
                             fecha_lanzamiento=pelicula.fecha_lanzamiento,
                             duracion=pelicula.duracion, imagen=pelicula.imagen,
                             director=pelicula.director.id, plataforma=pelicula.plataforma.id,
-                            generos=generos)
+                            generos=generos, calificacion=pelicula.calificacion)
     writer.commit()

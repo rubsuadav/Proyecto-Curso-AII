@@ -7,7 +7,6 @@ from .models import Generos
 
 # Python imports
 import re
-import random
 
 
 def validate_email(value):
@@ -69,7 +68,7 @@ class LoginForm(forms.Form):
 
 class GenerosForm(forms.Form):
     generos = forms.ModelChoiceField(
-        queryset=Generos.objects.all(), label='Selecciona el género', initial=random.choice(Generos.objects.all()))
+        queryset=Generos.objects.all(), label='Selecciona el género')
 
 
 class TituloSinopsisForm(forms.Form):
@@ -79,7 +78,7 @@ class TituloSinopsisForm(forms.Form):
 
 class GeneroTituloForm(forms.Form):
     generos = forms.ModelChoiceField(
-        queryset=Generos.objects.all(), label='Selecciona el género', initial=random.choice(Generos.objects.all()))
+        queryset=Generos.objects.all(), label='Selecciona el género')
     busqueda = forms.CharField(label='Introduce las palabras a buscar', max_length=100, min_length=1,
                                widget=forms.TextInput, required=False)
 
