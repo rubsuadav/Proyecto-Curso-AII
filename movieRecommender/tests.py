@@ -72,7 +72,7 @@ class MostPopularMoviesMethodTest(TestCase):
 
         s2 = BeautifulSoup(contenido2, 'lxml')
         texto = s2.h4.find_next_sibling().find(
-            "div", class_="container").p.text.strip()
+            "div", class_="container").p.text.strip().split(":")[0]
 
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(texto, "Título")
