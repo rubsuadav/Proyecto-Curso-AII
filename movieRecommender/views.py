@@ -319,7 +319,7 @@ def logout_session(request):
 # CARGAR DATOS #################################################
 
 # Cargar BBDD, sólo los usuarios autenticados pueden cargar la BBDD
-@user_passes_test(lambda u: u.is_authenticated, login_url='index')
+@user_passes_test(lambda u: u.is_authenticated, login_url='login')
 def cargar(request):
     if request.method == 'POST':
         if request.POST['cargar'] == 'Si':
@@ -336,8 +336,8 @@ def cargar(request):
 ## SISTEMA DE RECOMENDACIÓN BASADO EN CONTENIDOS #################################################
 
 # RECOMENDAR PELÍCULA SEGÚN TÍTULO, Sólo los usuarios autenticados pueden recomendar peliculas
-@user_passes_test(lambda u: u.is_authenticated, login_url='index')
-def recomendar_pelicula_segun_titulo(request):
+@user_passes_test(lambda u: u.is_authenticated, login_url='login')
+def recomendar_pelicula(request):
     request.session['origen'] = 'recomendacion1'
     if request.method == 'POST':
         form = PeliculaBusquedaForm(request.POST)
