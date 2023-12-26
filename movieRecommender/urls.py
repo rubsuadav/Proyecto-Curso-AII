@@ -39,6 +39,6 @@ urlpatterns = [
 
     # RECOMENDACIONES
     path('recomendacionespeliculasportitulo/',
-         views.recomendar_pelicula_segun_titulo, name='recom1'),
+         views.recomendar_pelicula, name='recom1'),
 
 ]

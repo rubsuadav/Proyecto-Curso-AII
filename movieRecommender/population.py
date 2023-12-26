@@ -79,7 +79,10 @@ def upload_data_peliculas(datos3):
     except:
         sinopsis = "No hay sinopsis disponible"
 
-    imagen = datos3.find("div", class_="title-poster").img['data-src']
+    try:
+        imagen = datos3.find("div", class_="title-poster").img['data-src']
+    except:
+        imagen = "https://www.publicdomainpictures.net/pictures/280000/velka/not-found-image-15383864787lu.jpg"
 
     return titulo, fecha, sinopsis, imagen
 
