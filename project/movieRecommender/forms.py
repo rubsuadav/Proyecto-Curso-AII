@@ -95,7 +95,7 @@ class PeliculaBusquedaForm(forms.Form):
 
 class GeneroPaisSinopsisForm(forms.Form):
     generos = forms.ModelChoiceField(
-        queryset=Generos.objects.all(), label='Selecciona el género')
+        queryset=Generos.objects.all(), label='Selecciona el género', required=False)
     pais = forms.ModelChoiceField(
         queryset=Pais.objects.all(), label='Selecciona el país')
     busqueda = forms.CharField(label='Introduce las palabras a buscar', max_length=100, min_length=1,

@@ -168,7 +168,8 @@ def buscar_genero_y_pais_o_pais_y_sinopsis(request):
         if form.is_valid():
             en = form.cleaned_data['busqueda']
             sp = form.cleaned_data['pais'].nombre
-            genero = form.cleaned_data['generos'].nombre
+            sp2 = form.cleaned_data['generos']
+            genero = sp2.nombre if sp2 else None
             with ix.searcher() as searcher:
                 pais_query = QueryParser("paises", ix.schema).parse(f'"{sp}"')
                 genero_query = QueryParser(
