@@ -117,6 +117,7 @@ def upload_duración(etiquetas_iguales):
 
 
 def upload_calificacion(etiquetas_iguales):
+    calificacion = 0
     try:
         calificacion_texto = etiquetas_iguales.find_next_sibling(
             "div").find_all("span")[1].text.strip().split(" ")[1].replace("(", "").replace(")", "")
@@ -169,81 +170,83 @@ def populateDB():
     s3 = permission_to_scrap(enl)
 
     # CARGAR DATOS DE LAS PLATAFORMAS #
-    datos_plataformas = s3.find(
-        "div", class_=re.compile("__items")).find_all("div")
+    if s3.find(
+            "div", class_=re.compile("__items")) is not None:
+        datos_plataformas = s3.find(
+            "div", class_=re.compile("__items")).find_all("div")
 
-    for dp in datos_plataformas:  # 69 plataformas en total
-        s4, plataforma, created = upload_plataformas(dp)
+        for dp in datos_plataformas:  # 69 plataformas en total
+            s4, plataforma, created = upload_plataformas(dp)
 
-        # CARGAR DATOS DE LAS PELICULAS #
-        # nos quedamos con las plataformas que tienen peliculas --> 61 plataformas con peliculas
-        if s4.find("div", {'listlayout': 'grid'}) is not None:
-            datos2 = s4.find("div", {'listlayout': 'grid'}).find(
-                "div", class_="title-list-grid").find_all("div", class_="title-list-grid__item")
-            # como no hay paginacion y carga todas las peliculas de las 61 plataformas (mas de 1000 en total),
-            # limitamos la carga de aproximadamente 500 peliculas para que no tarde tanto,
-            # para saber con cuantas nos quedamos por plataformas dividimos 500 entre 61
-            # con 8 nos salen 488 peliculas y con 9 salen 549 asi que nos quedamos con 8
-            for d in datos2[:8]:
-                if d.a is not None:
-                    s5 = permission_to_scrap(d.a["href"])
-                    datos3 = s5.find("div", class_="jw-info-box")
+            # CARGAR DATOS DE LAS PELICULAS #
+            # nos quedamos con las plataformas que tienen peliculas --> 61 plataformas con peliculas
+            if s4.find("div", {'listlayout': 'grid'}) is not None:
+                datos2 = s4.find("div", {'listlayout': 'grid'}).find(
+                    "div", class_="title-list-grid").find_all("div", class_="title-list-grid__item")
+                # como no hay paginacion y carga todas las peliculas de las 61 plataformas (mas de 1000 en total),
+                # limitamos la carga de aproximadamente 500 peliculas para que no tarde tanto,
+                # para saber con cuantas nos quedamos por plataformas dividimos 500 entre 61
+                # con 8 nos salen 488 peliculas y con 9 salen 549 asi que nos quedamos con 8
+                for d in datos2[:8]:
+                    if d.a is not None:
+                        s5 = permission_to_scrap(d.a["href"])
+                        datos3 = s5.find("div", class_="jw-info-box")
 
-                    if datos3 is not None:
-                        titulo, fecha, sinopsis, imagen = upload_data_peliculas(
-                            datos3)
-                        lista_generos = []
-                        lista_paises = []
+                        if datos3 is not None:
+                            titulo, fecha, sinopsis, imagen = upload_data_peliculas(
+                                datos3)
+                            lista_generos = []
+                            lista_paises = []
 
-                        # Obtenemos los géneros, el director, la duración, la calificación y los países de producción
-                        datos4 = datos3.find(
-                            "div", class_="title-info").find_all("div", class_="detail-infos")
-                        for d4 in datos4:
-                            etiquetas_iguales = d4.find(
-                                "h3", class_="detail-infos__subheading")  # los 5 atribs tienen misma etiqueta
+                            # Obtenemos los géneros, el director, la duración, la calificación y los países de producción
+                            datos4 = datos3.find(
+                                "div", class_="title-info").find_all("div", class_="detail-infos")
+                            for d4 in datos4:
+                                etiquetas_iguales = d4.find(
+                                    "h3", class_="detail-infos__subheading")  # los 5 atribs tienen misma etiqueta
 
-                            if etiquetas_iguales.text.strip() == "Géneros":
-                                generos = upload_generos(
-                                    etiquetas_iguales, lista_generos)
+                                if etiquetas_iguales.text.strip() == "Géneros":
+                                    generos = upload_generos(
+                                        etiquetas_iguales, lista_generos)
 
-                            if etiquetas_iguales.text.strip() == "Duración":
-                                duracion = upload_duración(
-                                    etiquetas_iguales)
+                                if etiquetas_iguales.text.strip() == "Duración":
+                                    duracion = upload_duración(
+                                        etiquetas_iguales)
 
-                            if etiquetas_iguales.text.strip() == "Director":
-                                nombre_director = etiquetas_iguales.find_next_sibling(
-                                    "div").text.strip()  # tambien equivalente d4.div.text.strip()
+                                if etiquetas_iguales.text.strip() == "Director":
+                                    nombre_director = etiquetas_iguales.find_next_sibling(
+                                        "div").text.strip()  # tambien equivalente d4.div.text.strip()
 
-                                # insertar datos en la base de datos
-                                director, created = Director.objects.get_or_create(
-                                    nombre=nombre_director)
+                                    # insertar datos en la base de datos
+                                    director, created = Director.objects.get_or_create(
+                                        nombre=nombre_director)
 
-                            if etiquetas_iguales.text.strip() == "Calificación":
-                                calificacion = upload_calificacion(
-                                    etiquetas_iguales)
+                                if etiquetas_iguales.text.strip() == "Calificación":
+                                    calificacion = upload_calificacion(
+                                        etiquetas_iguales)
 
-                            if etiquetas_iguales.text.strip() == "País de producción":
-                                paises_produccion = upload_paises_produccion(
-                                    etiquetas_iguales, lista_paises)
+                                if etiquetas_iguales.text.strip() == "País de producción":
+                                    paises_produccion = upload_paises_produccion(
+                                        etiquetas_iguales, lista_paises)
 
-                    # insertar datos en la base de datos
-                    pelicula, created = Pelicula.objects.get_or_create(
-                        titulo=titulo, sinopsis=sinopsis, fecha_lanzamiento=fecha, duracion=duracion,
-                        imagen=imagen, director=director, plataforma=plataforma, calificacion=calificacion)
+                        # insertar datos en la base de datos
+                        pelicula, created = Pelicula.objects.get_or_create(
+                            titulo=titulo, sinopsis=sinopsis, fecha_lanzamiento=fecha, duracion=duracion,
+                            imagen=imagen, director=director, plataforma=plataforma, calificacion=calificacion)
 
-                    # Crear o recuperar cada género individualmente
-                    for nombre_genero in generos:
-                        genero, created = Generos.objects.get_or_create(
-                            nombre=nombre_genero)
-                        # añadir géneros a la pelicula
-                        pelicula.generos.add(genero)
+                        # Crear o recuperar cada género individualmente
+                        for nombre_genero in generos:
+                            genero, created = Generos.objects.get_or_create(
+                                nombre=nombre_genero)
+                            # añadir géneros a la pelicula
+                            pelicula.generos.add(genero)
 
-                    # Crear o recuperar cada país individualmente
-                    for nombre_pais in paises_produccion:
-                        pais, created = Pais.objects.get_or_create(
-                            nombre=nombre_pais)
-                        # añadir paises a la pelicula
-                        pelicula.pais.add(pais)
+                        # Crear o recuperar cada país individualmente
+                        for nombre_pais in paises_produccion:
+                            pais, created = Pais.objects.get_or_create(
+                                nombre=nombre_pais)
+                            # añadir paises a la pelicula
+                            pelicula.pais.add(pais)
 
     # Crear esquema de las peliculas
     print("Creando esquema de las peliculas...")
