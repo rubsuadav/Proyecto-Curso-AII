@@ -262,6 +262,7 @@ def register(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             email = form.cleaned_data['email']
+            firstname = form.cleaned_data['first_name']
 
             if User.objects.filter(username__iexact=username).exists():
                 form.add_error(
@@ -271,14 +272,14 @@ def register(request):
                 form.add_error(
                     'email', 'El email ya existe')
                 return render(request, 'registro.html', {'form': form})
-            if User.objects.filter(first_name__iexact=form.cleaned_data['first_name']).exists():
+            if User.objects.filter(first_name__iexact=firstname).exists():
                 form.add_error(
                     'first_name', 'El nombre ya existe')
                 return render(request, 'registro.html', {'form': form})
             user = User.objects.create_user(
                 username=username, email=email, password=form.cleaned_data['password'])
 
-            user.first_name = form.cleaned_data['first_name']
+            user.first_name = firstname
             user.last_name = form.cleaned_data['last_name']
             user.save()
             return redirect('login')
