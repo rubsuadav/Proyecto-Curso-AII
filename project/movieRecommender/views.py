@@ -18,7 +18,7 @@ from .models import Pelicula, Director, Generos, Plataforma, Pais
 
 # Recomendations imports
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import linear_kernel
+from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 
 
@@ -381,7 +381,7 @@ def calcular_similitud():
     matriz_tfidf = vectorizer.fit_transform(descripciones)
 
     # Calcular la similitud del coseno
-    similitud_cos = linear_kernel(matriz_tfidf, matriz_tfidf)
+    similitud_cos = cosine_similarity(matriz_tfidf, matriz_tfidf)
 
     # Para cada película, obtener las 10 películas más similares
     indices = pd.Series(range(len(peliculas)), index=[
