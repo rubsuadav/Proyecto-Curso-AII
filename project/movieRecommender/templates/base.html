@@ -29,7 +29,9 @@
             ></path>
           </svg>
           <a href="{% url 'index' %}"
-            ><span class="ml-3 text-xl">MovieRecommender</span></a
+            >{% if user.is_authenticated %}
+            <span class="ml-3 text-xl">Inicio</span> {% else %}
+            <span class="ml-3 text-xl">MovieRecommender</span>{% endif %}</a
           >
         </a>
         <nav
