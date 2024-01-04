@@ -117,18 +117,27 @@ def upload_duración(etiquetas_iguales):
 
 
 def upload_calificacion(etiquetas_iguales):
-    calificacion = 0
-    try:
-        calificacion_texto = etiquetas_iguales.find_next_sibling(
-            "div").find_all("span")[1].text.strip().split(" ")[1].replace("(", "").replace(")", "")
-        if 'k' in calificacion_texto:
-            calificacion = int(
-                calificacion_texto.replace('k', '')) * 1000
-        elif 'm' in calificacion_texto:
-            calificacion = int(
-                calificacion_texto.replace('m', '')) * 1000000
-    except:
+    calificacion_etiqueta_padre = etiquetas_iguales.find_next_sibling(
+        "div").div
+    if calificacion_etiqueta_padre is None:
         calificacion = 0
+    else:
+        calificacion_etiqueta_hijo = calificacion_etiqueta_padre.find_all("div")[
+            1].span
+        if calificacion_etiqueta_hijo is None:
+            calificacion = 0
+        else:
+            partes = calificacion_etiqueta_hijo.text.strip().split(" (")
+            if len(partes) > 1:
+                calificacion = partes[1].replace(")", "")
+                if 'k' in calificacion:
+                    calificacion = int(
+                        calificacion.replace('k', '')) * 1000
+                elif 'm' in calificacion:
+                    calificacion = int(
+                        calificacion.replace('m', '')) * 1000000
+            else:
+                calificacion = 0
 
     return calificacion
 
